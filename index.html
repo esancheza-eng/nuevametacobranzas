@@ -3,717 +3,787 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard Cobradores Zona Milagro – Porcentaje Libera</title>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<title>Dashboard Cobradores — Metas Individuales por Cuartil</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <style>
-  :root {
-    --bg:#0d0f14; --surface:#14171f; --surface2:#1c2030; --border:#252a3a;
-    --text:#e8ecf4; --text-muted:#6b7494; --accent:#4f8ef7;
-    --sobre:#22d47e;    --sobre-bg:rgba(34,212,126,0.10);
-    --cerca:#f7c948;    --cerca-bg:rgba(247,201,72,0.10);
-    --minimo:#f78c4f;   --minimo-bg:rgba(247,140,79,0.10);
-    --nocumple:#f74f6a; --nocumple-bg:rgba(247,79,106,0.10);
-  }
-  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-  body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;}
+:root {
+  --bg:#080b12; --surface:#0f1320; --surface2:#161c2e; --surface3:#1d2540;
+  --border:#1e2540; --border2:#2a3356;
+  --text:#e2e8f8; --text-dim:#8492b8; --text-faint:#3d4d70;
+  --accent:#3b82f6; --accent2:#60a5fa;
+  --gold:#f59e0b; --gold2:#fbbf24;
+  --green:#10b981; --green2:#34d399;
+  --red:#ef4444; --red2:#f87171;
+  --purple:#8b5cf6; --purple2:#a78bfa;
+  --q3-color:#10b981; --q4-color:#3b82f6; --qmin-color:#f59e0b;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Syne',sans-serif;min-height:100vh;}
+body::before{content:'';position:fixed;inset:0;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");background-size:200px;pointer-events:none;z-index:0;}
+.page{position:relative;z-index:1;}
 
-  /* HEADER */
-  header{background:linear-gradient(135deg,#0d1525 0%,#0d1a2e 60%,#0d1525 100%);border-bottom:1px solid var(--border);padding:28px 48px 24px;display:flex;align-items:flex-end;gap:24px;position:relative;overflow:hidden;}
-  header::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 80% at 10% 50%,rgba(79,142,247,0.08) 0%,transparent 70%);pointer-events:none;}
-  .header-icon{font-size:2.6rem;line-height:1;}
-  .header-text h1{font-family:'Bebas Neue',sans-serif;font-size:2.4rem;letter-spacing:3px;color:#fff;line-height:1;}
-  .header-text p{font-size:0.78rem;color:var(--text-muted);letter-spacing:1.5px;text-transform:uppercase;margin-top:4px;}
-  .header-badge{margin-left:auto;background:rgba(79,142,247,0.12);border:1px solid rgba(79,142,247,0.35);border-radius:8px;padding:10px 20px;text-align:center;}
-  .header-badge .label{font-size:0.68rem;color:var(--text-muted);letter-spacing:1.5px;text-transform:uppercase;}
-  .header-badge .value{font-family:'Bebas Neue',sans-serif;font-size:1.9rem;color:var(--accent);letter-spacing:2px;line-height:1;}
+/* ─── HEADER ─── */
+.header{padding:20px 40px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:14px;background:linear-gradient(180deg,rgba(59,130,246,0.07) 0%,transparent 100%);flex-wrap:wrap;}
+.header-left{display:flex;align-items:center;gap:14px;}
+.header-icon{width:42px;height:42px;background:linear-gradient(135deg,var(--accent),var(--purple));border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;box-shadow:0 0 18px rgba(59,130,246,0.4);}
+.header-title{font-family:'Bebas Neue',sans-serif;font-size:1.75rem;letter-spacing:3px;color:#fff;line-height:1;}
+.header-sub{font-size:0.66rem;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;margin-top:3px;}
+.header-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.hbadge{display:flex;flex-direction:column;align-items:center;padding:6px 14px;border-radius:9px;border:1px solid;}
+.hbadge.corp{border-color:rgba(245,158,11,0.4);background:rgba(245,158,11,0.07);}
+.hbadge.q3b{border-color:rgba(16,185,129,0.4);background:rgba(16,185,129,0.07);}
+.hbadge.q4b{border-color:rgba(59,130,246,0.4);background:rgba(59,130,246,0.07);}
+.hbadge.mnb{border-color:rgba(245,158,11,0.3);background:rgba(245,158,11,0.05);}
+.hbadge .hbl{font-size:0.56rem;letter-spacing:1.4px;text-transform:uppercase;color:var(--text-dim);white-space:nowrap;}
+.hbadge .hbv{font-family:'Bebas Neue',sans-serif;font-size:1.25rem;letter-spacing:1.5px;line-height:1.1;}
+.hbadge.corp .hbv{color:var(--gold2);}
+.hbadge.q3b .hbv{color:var(--q3-color);}
+.hbadge.q4b .hbv{color:var(--q4-color);}
+.hbadge.mnb .hbv{color:var(--qmin-color);}
 
-  /* TABS */
-  .nav-wrap{background:var(--surface);border-bottom:1px solid var(--border);padding:0 48px;display:flex;align-items:center;gap:4px;overflow-x:auto;}
-  .nav-wrap::-webkit-scrollbar{height:3px;}
-  .nav-wrap::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
-  .tab-btn{background:none;border:none;border-bottom:3px solid transparent;color:var(--text-muted);font-family:'DM Sans',sans-serif;font-size:0.82rem;font-weight:500;letter-spacing:0.5px;padding:14px 20px 11px;cursor:pointer;white-space:nowrap;transition:color .2s,border-color .2s;}
-  .tab-btn:hover{color:var(--text);}
-  .tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
+/* ─── MAIN ─── */
+.main{padding:22px 40px 60px;display:flex;flex-direction:column;gap:24px;}
+.section-title{font-family:'Bebas Neue',sans-serif;font-size:0.92rem;letter-spacing:2.5px;color:var(--text-dim);text-transform:uppercase;display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.section-title::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--border2) 0%,transparent 100%);}
 
-  /* FILTER BAR */
-  .filter-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 48px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
-  .filter-label{font-size:0.7rem;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;margin-right:2px;flex-shrink:0;}
-  .filter-btn{background:var(--surface2);border:1px solid var(--border);border-radius:20px;color:var(--text-muted);font-family:'DM Sans',sans-serif;font-size:0.75rem;font-weight:500;padding:5px 14px;cursor:pointer;transition:all .2s;white-space:nowrap;}
-  .filter-btn:hover{border-color:var(--accent);color:var(--text);}
-  .filter-btn.active{color:#fff;border-color:transparent;}
-  .filter-btn.f-all.active    {background:var(--accent);}
-  .filter-btn.f-sobre.active  {background:var(--sobre);color:#000;}
-  .filter-btn.f-cerca.active  {background:var(--cerca);color:#000;}
-  .filter-btn.f-minimo.active {background:var(--minimo);color:#000;}
-  .filter-btn.f-nocumple.active{background:var(--nocumple);}
-  .filter-sep{width:1px;height:22px;background:var(--border);margin:0 6px;flex-shrink:0;}
-  .month-select{background:var(--surface2);border:1px solid var(--border);border-radius:20px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.75rem;padding:5px 14px;cursor:pointer;outline:none;transition:border-color .2s;}
-  .month-select:hover,.month-select:focus{border-color:var(--accent);}
-  option{background:var(--surface2);}
+/* ─── FORMULA EXPLAINER ─── */
+.formula-bar{display:flex;align-items:stretch;gap:12px;padding:14px 20px;background:var(--surface);border:1px solid var(--border);border-radius:12px;flex-wrap:wrap;}
+.formula-group{display:flex;flex-direction:column;gap:6px;flex:1;min-width:220px;}
+.fg-title{font-size:0.6rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-dim);}
+.fg-cobradores{display:flex;flex-wrap:wrap;gap:5px;}
+.fg-chip{font-size:0.65rem;font-weight:600;padding:3px 9px;border-radius:20px;white-space:nowrap;}
+.chip-q3{background:rgba(16,185,129,0.15);color:var(--q3-color);border:1px solid rgba(16,185,129,0.3);}
+.chip-q4{background:rgba(59,130,246,0.15);color:var(--q4-color);border:1px solid rgba(59,130,246,0.3);}
+.chip-mn{background:rgba(245,158,11,0.15);color:var(--qmin-color);border:1px solid rgba(245,158,11,0.3);}
+.chip-mn2{background:rgba(251,146,60,0.15);color:#fb923c;border:1px solid rgba(251,146,60,0.3);}
+.fg-formula{font-family:'JetBrains Mono',monospace;font-size:0.68rem;padding:5px 10px;border-radius:6px;background:var(--surface2);border:1px solid var(--border2);color:var(--accent2);}
+.formula-sep{width:1px;background:var(--border2);flex-shrink:0;}
 
-  /* LEGEND */
-  .legend-bar{display:flex;align-items:center;gap:20px;padding:12px 48px;background:var(--surface);border-bottom:1px solid var(--border);flex-wrap:wrap;}
-  .legend-item{display:flex;align-items:center;gap:7px;font-size:0.74rem;color:var(--text-muted);}
-  .legend-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+/* ─── MASTER TABLE ─── */
+.master-wrap{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+.master-head{padding:14px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.master-title{font-family:'Bebas Neue',sans-serif;font-size:1.05rem;letter-spacing:2px;color:var(--text);}
+.tbl-legend{display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.tl-item{display:flex;align-items:center;gap:5px;font-size:0.62rem;color:var(--text-dim);}
+.tl-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.tbl-scroll{overflow-x:auto;}
+.tbl-scroll::-webkit-scrollbar{height:5px;} .tbl-scroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
 
-  /* MAIN */
-  main{padding:32px 48px 60px;}
+.mt{width:100%;border-collapse:collapse;min-width:820px;}
 
-  /* KPI */
-  .kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;}
-  .kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 22px;position:relative;overflow:hidden;cursor:pointer;transition:border-color .2s,box-shadow .2s;}
-  .kpi-card:hover{border-color:var(--accent);}
-  .kpi-card.selected-kpi{box-shadow:0 0 0 2px var(--accent);}
-  .kpi-card::after{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:12px 0 0 12px;}
-  .kpi-card.sobre::after   {background:var(--sobre);}
-  .kpi-card.cerca::after   {background:var(--cerca);}
-  .kpi-card.minimo::after  {background:var(--minimo);}
-  .kpi-card.nocumple::after{background:var(--nocumple);}
-  .kpi-label{font-size:0.68rem;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-muted);margin-bottom:6px;}
-  .kpi-count{font-family:'Bebas Neue',sans-serif;font-size:2.8rem;line-height:1;}
-  .kpi-card.sobre .kpi-count   {color:var(--sobre);}
-  .kpi-card.cerca .kpi-count   {color:var(--cerca);}
-  .kpi-card.minimo .kpi-count  {color:var(--minimo);}
-  .kpi-card.nocumple .kpi-count{color:var(--nocumple);}
-  .kpi-sub{font-size:0.72rem;color:var(--text-muted);margin-top:2px;}
+/* Group header row */
+.mt thead tr.grp-row th{
+  padding:9px 12px;font-size:0.58rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  text-align:center;white-space:nowrap;
+}
+.mt thead tr.grp-row th.th-name{text-align:left;min-width:185px;background:var(--surface3);color:var(--text-dim);}
+.th-grp-months{background:rgba(96,165,250,0.10);color:var(--accent2);}
+.th-grp-q3    {background:rgba(16,185,129,0.12);color:var(--q3-color);}
+.th-grp-q4    {background:rgba(59,130,246,0.14);color:var(--q4-color);}
+.th-grp-mn    {background:rgba(245,158,11,0.10);color:var(--qmin-color);}
 
-  /* TABLE */
-  .table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
-  .table-header{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:10px;}
-  .table-title{font-family:'Bebas Neue',sans-serif;font-size:1.15rem;letter-spacing:2px;color:var(--text);}
-  .table-meta{font-size:0.72rem;color:var(--text-muted);}
-  .results-tag{font-size:0.72rem;color:var(--accent);background:rgba(79,142,247,0.1);border:1px solid rgba(79,142,247,0.25);border-radius:20px;padding:3px 10px;}
+/* Sub-header row */
+.mt thead tr.sub-row th{
+  background:var(--surface2);padding:7px 12px;font-size:0.56rem;font-weight:700;
+  letter-spacing:0.8px;text-transform:uppercase;text-align:center;
+  color:var(--text-dim);border-bottom:2px solid var(--border2);white-space:nowrap;
+}
+.mt thead tr.sub-row th.th-name{text-align:left;}
+.mt thead tr.sub-row th.th-meta{color:var(--purple2);font-size:0.62rem;}
+.sep-l{border-left:2px solid var(--border2)!important;}
 
-  table{width:100%;border-collapse:collapse;}
-  thead tr{background:var(--surface2);}
-  thead th{font-size:0.68rem;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-muted);padding:12px 16px;text-align:right;border-bottom:1px solid var(--border);white-space:nowrap;}
-  thead th:first-child{text-align:left;}
-  thead th.avg-col{color:var(--accent);border-left:1px solid rgba(79,142,247,0.2);}
+/* Body */
+.mt tbody tr{border-bottom:1px solid rgba(30,37,64,0.5);cursor:pointer;transition:background .13s;}
+.mt tbody tr:hover td{background:rgba(255,255,255,0.022)!important;}
+.mt tbody tr.row-sel td{background:rgba(59,130,246,0.07)!important;}
+.mt tbody tr.row-sel td.td-name{border-left:3px solid var(--accent2);}
+.mt tbody tr.row-footer{background:var(--surface3)!important;cursor:default;border-top:2px solid var(--border2);}
+.mt tbody tr.row-footer:hover td{background:var(--surface3)!important;}
 
-  tbody tr{border-bottom:1px solid rgba(37,42,58,0.6);transition:background .15s;}
-  tbody tr:last-child{border-bottom:none;}
-  tbody tr:hover{background:rgba(255,255,255,0.03) !important;}
-  tbody tr.total-row{background:var(--surface2) !important;}
+.mt tbody td{padding:9px 12px;font-family:'JetBrains Mono',monospace;font-size:0.72rem;text-align:center;color:var(--text-dim);vertical-align:middle;}
+.mt tbody td.td-name{font-family:'Syne',sans-serif;font-size:0.74rem;font-weight:600;color:var(--text);text-align:left;padding-left:14px;}
 
-  td{padding:12px 16px;text-align:right;color:var(--text-muted);font-family:'JetBrains Mono',monospace;font-size:0.78rem;white-space:nowrap;}
-  td:first-child{text-align:left;font-family:'DM Sans',sans-serif;font-size:0.83rem;font-weight:500;color:var(--text);}
-  tr.total-row td{font-weight:700;color:var(--text) !important;}
-  tr.total-row td:first-child{font-family:'DM Sans',sans-serif;}
-  td.avg-td{background:rgba(79,142,247,0.04);border-left:1px solid rgba(79,142,247,0.12);}
+/* rank badge */
+.rbadge{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;font-family:'Bebas Neue',sans-serif;font-size:0.8rem;margin-right:7px;flex-shrink:0;vertical-align:middle;}
 
-  .pct-cell{display:flex;align-items:center;justify-content:flex-end;gap:7px;}
-  .status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
-  .pct-val{font-family:'JetBrains Mono',monospace;font-size:0.82rem;font-weight:600;}
-  .sobre-color   {color:var(--sobre);}
-  .cerca-color   {color:var(--cerca);}
-  .minimo-color  {color:var(--minimo);}
-  .nocumple-color{color:var(--nocumple);}
-  .bar-wrap{width:70px;height:5px;background:var(--border);border-radius:3px;overflow:hidden;display:inline-block;vertical-align:middle;}
-  .bar-fill{height:100%;border-radius:3px;}
+/* pct cell */
+.pct-wrap{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.pct-num{font-family:'JetBrains Mono',monospace;font-size:0.73rem;font-weight:600;line-height:1;}
+.pct-bar{width:40px;height:3px;background:rgba(255,255,255,0.07);border-radius:2px;overflow:hidden;}
+.pct-fill{height:100%;border-radius:2px;}
 
-  .no-results-row td{text-align:center;padding:48px 24px;color:var(--text-muted);font-size:0.9rem;font-family:'DM Sans',sans-serif;}
+/* meta goal cell */
+.meta-cell{font-family:'JetBrains Mono',monospace;font-size:0.75rem;font-weight:700;text-align:center;}
+.meta-cell .mc-val{display:block;line-height:1.1;}
+.meta-cell .mc-status{font-size:0.6rem;font-weight:600;margin-top:1px;}
+.mc-win{color:var(--green2);}
+.mc-miss{color:var(--red2);}
+.mc-na{color:var(--text-faint);}
 
-  /* COBRADOR DETAIL SECTION */
-  .cobrador-section{margin-top:40px;}
-  .cobrador-section-header{display:flex;align-items:center;gap:16px;margin-bottom:20px;flex-wrap:wrap;}
-  .cobrador-section-title{font-family:'Bebas Neue',sans-serif;font-size:1.3rem;letter-spacing:2px;color:var(--text);}
-  .cobrador-select{background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:500;padding:8px 16px;cursor:pointer;outline:none;transition:border-color .2s;min-width:280px;}
-  .cobrador-select:hover,.cobrador-select:focus{border-color:var(--accent);}
+/* ─── TWO-COL ─── */
+.two-col{display:grid;grid-template-columns:320px 1fr;gap:16px;align-items:start;}
+.selector-panel{background:var(--surface);border:1px solid var(--border);border-radius:13px;overflow:hidden;}
+.panel-hdr{padding:11px 15px;border-bottom:1px solid var(--border);font-size:0.62rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-dim);display:flex;align-items:center;justify-content:space-between;}
+.panel-hdr-count{font-family:'Bebas Neue',sans-serif;font-size:1rem;color:var(--accent2);letter-spacing:1px;}
 
-  .cobrador-detail-wrap{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
-  .cobrador-detail-header{padding:16px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
-  .cobrador-name{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:2px;color:var(--text);}
-  .cobrador-avg-badge{display:flex;align-items:center;gap:8px;background:rgba(79,142,247,0.08);border:1px solid rgba(79,142,247,0.2);border-radius:8px;padding:6px 14px;}
-  .cobrador-avg-badge .badge-label{font-size:0.68rem;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;}
-  .cobrador-avg-badge .badge-val{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:1px;}
+/* Search */
+.panel-search{padding:8px 11px;border-bottom:1px solid var(--border);}
+.panel-search input{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:7px;color:var(--text);font-family:'Syne',sans-serif;font-size:0.74rem;padding:6px 10px 6px 32px;outline:none;transition:border-color .2s;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' viewBox='0 0 24 24'%3E%3Ccircle cx='11' cy='11' r='8' stroke='%238492b8' stroke-width='2'/%3E%3Cpath d='m21 21-4.35-4.35' stroke='%238492b8' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:10px center;}
+.panel-search input:focus{border-color:var(--accent);}
+.panel-search input::placeholder{color:var(--text-faint);}
 
-  /* Chart */
-  .chart-container{padding:24px 24px 8px;background:var(--surface);}
-  canvas#cobradorChart{width:100%!important;max-height:220px;}
+/* Group filter buttons */
+.panel-filters{padding:8px 11px;border-bottom:1px solid var(--border);display:flex;gap:5px;flex-wrap:wrap;}
+.filt-btn{background:var(--surface2);border:1px solid var(--border2);border-radius:20px;color:var(--text-dim);font-family:'Syne',sans-serif;font-size:0.62rem;font-weight:700;letter-spacing:0.5px;padding:4px 11px;cursor:pointer;transition:all .18s;white-space:nowrap;}
+.filt-btn:hover{border-color:var(--accent);color:var(--text);}
+.filt-btn.active-all{background:var(--accent);border-color:var(--accent);color:#fff;}
+.filt-btn.active-q3{background:var(--q3-color);border-color:var(--q3-color);color:#000;}
+.filt-btn.active-q4{background:var(--q4-color);border-color:var(--q4-color);color:#fff;}
+.filt-btn.active-mn{background:var(--qmin-color);border-color:var(--qmin-color);color:#000;}
 
-  /* Detail table */
-  .detail-table-wrap{overflow-x:auto;}
-  .detail-table-wrap table thead th{background:var(--surface2);}
-  tr.avg-row td{font-weight:700;color:var(--accent)!important;background:rgba(79,142,247,0.06);font-family:'DM Sans',sans-serif;font-size:0.82rem;}
-  tr.avg-row td:first-child{font-family:'DM Sans',sans-serif;}
 
-  footer{text-align:center;padding:24px;font-size:0.68rem;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;border-top:1px solid var(--border);margin-top:12px;}
+/* Sort control */
+.panel-sort{padding:6px 11px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px;}
+.panel-sort-label{font-size:0.6rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-dim);flex-shrink:0;}
+.sort-btn{background:none;border:1px solid var(--border2);border-radius:6px;color:var(--text-dim);font-family:'Syne',sans-serif;font-size:0.62rem;font-weight:600;padding:3px 9px;cursor:pointer;transition:all .18s;}
+.sort-btn:hover{border-color:var(--accent);color:var(--text);}
+.sort-btn.active{background:var(--surface3);border-color:var(--accent2);color:var(--accent2);}
 
-  @media(max-width:900px){
-    header,.nav-wrap,.filter-bar,.legend-bar,main{padding-left:16px;padding-right:16px;}
-    .kpi-row{grid-template-columns:repeat(2,1fr);}
-    .bar-wrap{display:none;}
-  }
+
+/* List results */
+.clist-results{padding:5px 11px 3px;font-size:0.6rem;color:var(--text-faint);letter-spacing:0.5px;}
+
+.clist{max-height:380px;overflow-y:auto;}
+.clist::-webkit-scrollbar{width:3px;} .clist::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+.citem{display:flex;align-items:center;gap:9px;padding:9px 14px;cursor:pointer;border-bottom:1px solid rgba(30,37,64,0.5);transition:background .13s;position:relative;}
+.citem:hover{background:var(--surface2);}
+.citem.active{background:rgba(59,130,246,0.08);border-left:2px solid var(--accent);}
+.citem:last-child{border-bottom:none;}
+.ci-rk{font-family:'Bebas Neue',sans-serif;font-size:0.95rem;line-height:1;width:20px;text-align:center;flex-shrink:0;}
+.ci-info{flex:1;min-width:0;}
+.ci-nm{font-size:0.71rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ci-mt{display:flex;align-items:center;gap:6px;margin-top:2px;flex-wrap:wrap;}
+.ci-pc{font-family:'JetBrains Mono',monospace;font-size:0.68rem;font-weight:600;}
+.ci-tg{font-size:0.55rem;font-weight:700;letter-spacing:0.5px;padding:1px 6px;border-radius:9px;}
+.tg-q3{background:rgba(16,185,129,0.15);color:var(--q3-color);}
+.tg-q4{background:rgba(59,130,246,0.15);color:var(--q4-color);}
+.tg-mn{background:rgba(245,158,11,0.15);color:var(--qmin-color);}
+.tg-mn2{background:rgba(251,146,60,0.15);color:#fb923c;}
+.ci-gb{position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--border);}
+.ci-gf{height:100%;border-radius:2px;transition:width .4s;}
+/* Month pct shown in list */
+.ci-month-pct{font-size:0.62rem;font-weight:700;font-family:'JetBrains Mono',monospace;margin-left:auto;flex-shrink:0;}
+.ci-status-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+
+/* ─── CHART ─── */
+.chart-panel{background:var(--surface);border:1px solid var(--border);border-radius:13px;overflow:hidden;}
+.chart-hdr{padding:14px 18px 10px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:9px;}
+.chart-nm{font-family:'Bebas Neue',sans-serif;font-size:1.25rem;letter-spacing:3px;color:#fff;line-height:1;}
+.chart-sb{font-size:0.6rem;color:var(--text-dim);margin-top:3px;letter-spacing:1px;text-transform:uppercase;}
+.cbadges{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.cbadge{display:flex;flex-direction:column;align-items:flex-end;padding:5px 11px;border-radius:7px;border:1px solid;}
+.cbadge .cbl{font-size:0.54rem;letter-spacing:1px;text-transform:uppercase;opacity:0.7;}
+.cbadge .cbv{font-family:'Bebas Neue',sans-serif;font-size:1.15rem;letter-spacing:1px;line-height:1.1;}
+.cbadge.corp{border-color:rgba(245,158,11,0.35);background:rgba(245,158,11,0.06);}
+.cbadge.corp .cbv{color:var(--gold2);}
+.cbadge.ind{border-color:rgba(167,139,250,0.35);background:rgba(167,139,250,0.06);}
+.cbadge.ind .cbv{color:var(--purple2);}
+.cbadge.cur{border-color:rgba(96,165,250,0.35);background:rgba(96,165,250,0.06);}
+.cbadge.cur .cbv{color:var(--accent2);}
+.chart-area{padding:16px 16px 10px;}
+canvas#mainChart{width:100%!important;}
+.lgnd{display:flex;align-items:center;gap:16px;padding:7px 18px 12px;flex-wrap:wrap;}
+.lgnd-i{display:flex;align-items:center;gap:5px;font-size:0.63rem;color:var(--text-dim);}
+.lgnd-line{width:18px;height:2px;border-radius:1px;}
+.lgnd-dash{width:18px;height:0;border-top:2px dashed;}
+
+/* ─── DETAIL TABLE ─── */
+.dtbl-wrap{background:var(--surface);border:1px solid var(--border);border-radius:13px;overflow:hidden;}
+.dtbl-hdr{padding:11px 17px;border-bottom:1px solid var(--border);font-size:0.62rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-dim);}
+table.dtbl{width:100%;border-collapse:collapse;}
+table.dtbl thead th{background:var(--surface2);padding:8px 13px;font-size:0.58rem;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-dim);text-align:right;border-bottom:1px solid var(--border);white-space:nowrap;}
+table.dtbl thead th:first-child{text-align:left;}
+table.dtbl tbody td{padding:8px 13px;font-family:'JetBrains Mono',monospace;font-size:0.72rem;color:var(--text-dim);text-align:right;border-bottom:1px solid rgba(30,37,64,0.5);}
+table.dtbl tbody td:first-child{font-family:'Syne',sans-serif;font-size:0.74rem;font-weight:600;color:var(--text);text-align:left;}
+table.dtbl tbody tr:last-child td{border-bottom:none;}
+table.dtbl tbody tr:hover td{background:rgba(255,255,255,0.018);}
+.schip{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:0.68rem;font-weight:600;}
+.schip.win{background:rgba(16,185,129,0.12);color:var(--green2);border:1px solid rgba(16,185,129,0.25);}
+.schip.near{background:rgba(245,158,11,0.12);color:var(--gold2);border:1px solid rgba(245,158,11,0.25);}
+.schip.miss{background:rgba(239,68,68,0.12);color:var(--red2);border:1px solid rgba(239,68,68,0.25);}
+.cdot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+.up{color:var(--green2);font-size:0.68rem;} .dn{color:var(--red2);font-size:0.68rem;}
+
+footer{text-align:center;padding:16px;font-size:0.58rem;color:var(--text-faint);letter-spacing:1.5px;text-transform:uppercase;border-top:1px solid var(--border);}
+
+@media(max-width:1000px){.header,.main{padding-left:14px;padding-right:14px;} .two-col{grid-template-columns:1fr;}}
 </style>
 </head>
 <body>
+<div class="page">
 
-<header>
-  <div class="header-icon">📍</div>
-  <div class="header-text">
-    <h1>Dashboard Cobradores Zona Milagro</h1>
-    <p>Seguimiento de Porcentaje Libera por Cobrador</p>
+<header class="header">
+  <div class="header-left">
+    <div class="header-icon">📍</div>
+    <div>
+      <div class="header-title">Metas Individuales — Zona Milagro</div>
+      <div class="header-sub">CUARTIL(B:F;3/4) por cobrador · Oct–Feb · Meta corporativa 24,01%</div>
+    </div>
   </div>
-  <div class="header-badge">
-    <div class="label">Meta Global</div>
-    <div class="value">24,01%</div>
+  <div class="header-right">
+    <div class="hbadge corp"><span class="hbl">Meta Corp.</span><span class="hbv">24,01%</span></div>
+    <div class="hbadge q3b"><span class="hbl">Q3 · Hector/Fausto/Byron</span><span class="hbv" id="hQ3">—</span></div>
+    <div class="hbadge q4b"><span class="hbl">Q4 · Gabriel/Jose/Adolfo/Mario/Victor/Franklin</span><span class="hbv" id="hQ4">—</span></div>
+    <div class="hbadge mnb"><span class="hbl">Mín 18,01% · Jefferson/Celio/Guillermo/Millán</span><span class="hbv">18,01%</span></div>
+    <div class="hbadge mnb" style="border-color:rgba(251,146,60,0.4);background:rgba(251,146,60,0.07);"><span class="hbl" style="color:var(--text-dim);">Mín 15,01% · Julio Jara</span><span class="hbv" style="color:#fb923c;">15,01%</span></div>
   </div>
 </header>
 
-<div class="nav-wrap" id="tabNav"></div>
+<main class="main">
 
-<div class="filter-bar">
-  <span class="filter-label">Estado:</span>
-  <button class="filter-btn f-all"      onclick="setFilter('all')">Todos</button>
-  <button class="filter-btn f-sobre"    onclick="setFilter('sobre')">🟢 Sobre Meta</button>
-  <button class="filter-btn f-cerca"    onclick="setFilter('cerca')">🟡 Cerca Meta</button>
-  <button class="filter-btn f-minimo"   onclick="setFilter('minimo')">🟠 Mínimo Meta</button>
-  <button class="filter-btn f-nocumple" onclick="setFilter('nocumple')">🔴 No Cumple</button>
-  <div class="filter-sep"></div>
-  <span class="filter-label">Mes:</span>
-  <select class="month-select" id="monthSelect" onchange="setMonthFilter(this.value)">
-  </select>
-</div>
-
-<div class="legend-bar">
-  <span style="font-size:0.7rem;color:var(--text-muted);letter-spacing:1px;text-transform:uppercase;margin-right:4px;">Rangos:</span>
-  <div class="legend-item"><div class="legend-dot" style="background:var(--sobre)"></div>Sobre Meta (&gt; 24,01%)</div>
-  <div class="legend-item"><div class="legend-dot" style="background:var(--cerca)"></div>Cerca Meta (20,01% – 24,00%)</div>
-  <div class="legend-item"><div class="legend-dot" style="background:var(--minimo)"></div>Mínimo Meta (15,01% – 20,00%)</div>
-  <div class="legend-item"><div class="legend-dot" style="background:var(--nocumple)"></div>No Cumple (≤ 15,00%)</div>
-</div>
-
-<main id="mainContent"></main>
-
-<!-- COBRADOR DETAIL SECTION -->
-<div style="padding:0 48px 60px;" id="cobradorSection">
-  <div class="cobrador-section">
-    <div class="cobrador-section-header">
-      <div class="cobrador-section-title">📊 Evolución por Cobrador</div>
-      <select class="cobrador-select" id="cobradorSelect" onchange="renderCobradorDetail()">
-      </select>
+  <!-- FORMULA EXPLAINER -->
+  <div class="formula-bar">
+    <div class="formula-group">
+      <div class="fg-title">🏆 Cuartil 3 — =+CUARTIL(Oct:Feb ; 3)</div>
+      <div class="fg-cobradores">
+        <span class="fg-chip chip-q3">HECTOR MOSQUERA</span>
+        <span class="fg-chip chip-q3">FAUSTO VILLARREAL</span>
+        <span class="fg-chip chip-q3">BYRON AGUILAR</span>
+      </div>
+      <div class="fg-formula">=+CUARTIL(Oct_Feb_del_cobrador ; 3) → 75° percentil de sus 5 meses</div>
     </div>
-    <div class="cobrador-detail-wrap" id="cobradorDetail"></div>
-  </div>
-</div>
-
-<footer>Dashboard Cobradores Zona Milagro &nbsp;·&nbsp; Meta 24,01% &nbsp;·&nbsp; Actualizado 2026</footer>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
-<script>
-// ══════════════════════════════════════════════
-// DATA — agrega nuevos períodos aquí
-// ══════════════════════════════════════════════
-const PERIODS = [
-  {
-    id: "oct2025",
-    label: "Octubre 2025",
-    rows: [
-      { cobrador:"MOSQUERA MEDINA HECTOR DANIEL",       saldoInicial:97283.62,  saldoDeteriora:48619.81,  saldoContiene:24102.93, saldoLibera:24560.88, pctLibera:25.25 },
-      { cobrador:"VILLARREAL NAVARRETE  FAUSTO ALBERTO", saldoInicial:79253.97,  saldoDeteriora:39108.94,  saldoContiene:23547.37, saldoLibera:16597.66, pctLibera:20.94 },
-      { cobrador:"GUILLERMO MONTANO  LUIS AGUSTIN",      saldoInicial:142992.47, saldoDeteriora:84295.73,  saldoContiene:30519.10, saldoLibera:28177.64, pctLibera:19.71 },
-      { cobrador:"MORAN BARROS  GABRIEL EPIFANIO",       saldoInicial:99687.26,  saldoDeteriora:55685.79,  saldoContiene:26758.98, saldoLibera:17242.49, pctLibera:17.30 },
-      { cobrador:"OLAYA ACURIO  JOSE GABRIEL",           saldoInicial:154926.08, saldoDeteriora:88149.90,  saldoContiene:40610.13, saldoLibera:26166.05, pctLibera:16.89 },
-      { cobrador:"AGUILAR CONTRERAS  BYRON LUIS",        saldoInicial:133031.91, saldoDeteriora:79730.96,  saldoContiene:33275.87, saldoLibera:20025.08, pctLibera:15.05 },
-      { cobrador:"CARRANZA JIMENEZ  FRANKLIN GEOVANNY",  saldoInicial:120735.99, saldoDeteriora:84330.51,  saldoContiene:18579.93, saldoLibera:17825.55, pctLibera:14.76 },
-      { cobrador:"MENDOZA JIMENEZ VICTOR DARIO",         saldoInicial:185412.10, saldoDeteriora:115007.13, saldoContiene:43341.84, saldoLibera:27063.13, pctLibera:14.60 },
-      { cobrador:"QUINONEZ AYALA JEFFERSON JAVIER",      saldoInicial:156286.69, saldoDeteriora:115607.16, saldoContiene:19083.87, saldoLibera:21595.66, pctLibera:13.82 },
-      { cobrador:"JARA LLIGUIN JULIO LEONARDO",          saldoInicial:56951.28,  saldoDeteriora:45533.80,  saldoContiene:4020.72,  saldoLibera:7396.76,  pctLibera:12.99 },
-      { cobrador:"ORTEGA URGILES CELIO ISAIAS",          saldoInicial:127337.14, saldoDeteriora:88237.57,  saldoContiene:22430.05, saldoLibera:16669.52, pctLibera:13.09 },
-      { cobrador:"CHAVEZ GOMEZCUELLO MARIO JAVIER",      saldoInicial:222054.02, saldoDeteriora:148468.81, saldoContiene:47965.67, saldoLibera:25619.54, pctLibera:11.54 },
-      { cobrador:"MILLAN CARVAJAL  RAFAEL ENRIQUE",      saldoInicial:196167.23, saldoDeteriora:136991.64, saldoContiene:39698.01, saldoLibera:19477.58, pctLibera:9.93  },
-      { cobrador:"GONZALEZ CORTEZ  ADOLFO MODESTO",      saldoInicial:174511.38, saldoDeteriora:131058.34, saldoContiene:26200.90, saldoLibera:17252.14, pctLibera:9.89  },
-    ]
-  }
-  ,
-  {
-    id: "nov2025",
-    label: "Noviembre 2025",
-    rows: [
-      { cobrador:"AGUILAR CONTRERAS  BYRON LUIS",        saldoInicial:152878.86, saldoDeteriora:83954.63,  saldoContiene:29813.70, saldoLibera:39110.53, pctLibera:25.58 },
-      { cobrador:"VILLARREAL NAVARRETE  FAUSTO ALBERTO", saldoInicial:94035.25,  saldoDeteriora:52478.58,  saldoContiene:18897.00, saldoLibera:22659.67, pctLibera:24.10 },
-      { cobrador:"CARRANZA JIMENEZ  FRANKLIN GEOVANNY",  saldoInicial:107902.87, saldoDeteriora:69550.78,  saldoContiene:13248.74, saldoLibera:25103.35, pctLibera:23.26 },
-      { cobrador:"MOSQUERA MEDINA HECTOR DANIEL",        saldoInicial:99907.99,  saldoDeteriora:43561.04,  saldoContiene:35497.43, saldoLibera:20849.52, pctLibera:20.87 },
-      { cobrador:"CHAVEZ GOMEZCUELLO MARIO JAVIER",      saldoInicial:199274.06, saldoDeteriora:112231.35, saldoContiene:46179.71, saldoLibera:40863.00, pctLibera:20.51 },
-      { cobrador:"MORAN BARROS  GABRIEL EPIFANIO",       saldoInicial:89476.15,  saldoDeteriora:42935.86,  saldoContiene:30197.94, saldoLibera:16342.35, pctLibera:18.26 },
-      { cobrador:"MENDOZA JIMENEZ VICTOR DARIO",         saldoInicial:192426.47, saldoDeteriora:123174.17, saldoContiene:36658.24, saldoLibera:32594.06, pctLibera:16.94 },
-      { cobrador:"ORTEGA URGILES CELIO ISAIAS",          saldoInicial:139102.35, saldoDeteriora:80874.90,  saldoContiene:34708.74, saldoLibera:23518.71, pctLibera:16.91 },
-      { cobrador:"OLAYA ACURIO  JOSE GABRIEL",           saldoInicial:179194.39, saldoDeteriora:97932.66,  saldoContiene:53105.80, saldoLibera:28155.93, pctLibera:15.71 },
-      { cobrador:"GONZALEZ CORTEZ  ADOLFO MODESTO",      saldoInicial:178014.39, saldoDeteriora:116261.37, saldoContiene:36498.87, saldoLibera:25254.15, pctLibera:14.19 },
-      { cobrador:"MILLAN CARVAJAL  RAFAEL ENRIQUE",      saldoInicial:195400.72, saldoDeteriora:117457.11, saldoContiene:53611.13, saldoLibera:24332.48, pctLibera:12.45 },
-      { cobrador:"GUILLERMO MONTANO  LUIS AGUSTIN",      saldoInicial:146125.18, saldoDeteriora:96905.28,  saldoContiene:31093.40, saldoLibera:18126.50, pctLibera:12.40 },
-      { cobrador:"QUINONEZ AYALA JEFFERSON JAVIER",      saldoInicial:153328.04, saldoDeteriora:105768.38, saldoContiene:34493.22, saldoLibera:13066.44, pctLibera:8.52  },
-      { cobrador:"JARA LLIGUIN JULIO LEONARDO",          saldoInicial:48761.00,  saldoDeteriora:35272.14,  saldoContiene:9599.12,  saldoLibera:3889.74,  pctLibera:7.98  },
-    ]
-  }
-  ,
-  {
-    id: "dic2025",
-    label: "Diciembre 2025",
-    rows: [
-      { cobrador:"VILLARREAL NAVARRETE  FAUSTO ALBERTO", saldoInicial:101905.84, saldoDeteriora:57045.30,  saldoContiene:17668.00, saldoLibera:27192.54, pctLibera:26.68 },
-      { cobrador:"MOSQUERA MEDINA HECTOR DANIEL",        saldoInicial:106174.39, saldoDeteriora:54392.76,  saldoContiene:24157.15, saldoLibera:27624.48, pctLibera:26.02 },
-      { cobrador:"CARRANZA JIMENEZ  FRANKLIN GEOVANNY",  saldoInicial:105565.24, saldoDeteriora:65479.36,  saldoContiene:20987.93, saldoLibera:19097.95, pctLibera:18.09 },
-      { cobrador:"GUILLERMO MONTANO  LUIS AGUSTIN",      saldoInicial:145154.93, saldoDeteriora:84953.86,  saldoContiene:35023.53, saldoLibera:25177.54, pctLibera:17.35 },
-      { cobrador:"MENDOZA JIMENEZ VICTOR DARIO",         saldoInicial:177083.84, saldoDeteriora:116924.59, saldoContiene:30013.18, saldoLibera:30146.07, pctLibera:17.02 },
-      { cobrador:"MORAN BARROS  GABRIEL EPIFANIO",       saldoInicial:85744.68,  saldoDeteriora:42956.64,  saldoContiene:28674.71, saldoLibera:14113.33, pctLibera:16.46 },
-      { cobrador:"MILLAN CARVAJAL  RAFAEL ENRIQUE",      saldoInicial:210181.28, saldoDeteriora:125724.61, saldoContiene:51228.72, saldoLibera:33227.95, pctLibera:15.81 },
-      { cobrador:"CHAVEZ GOMEZCUELLO MARIO JAVIER",      saldoInicial:231327.22, saldoDeteriora:158717.73, saldoContiene:39908.34, saldoLibera:32701.15, pctLibera:14.14 },
-      { cobrador:"QUINONEZ AYALA JEFFERSON JAVIER",      saldoInicial:157493.49, saldoDeteriora:120656.76, saldoContiene:16324.38, saldoLibera:20512.35, pctLibera:13.02 },
-      { cobrador:"AGUILAR CONTRERAS  BYRON LUIS",        saldoInicial:145380.51, saldoDeteriora:91621.63,  saldoContiene:35353.89, saldoLibera:18404.99, pctLibera:12.66 },
-      { cobrador:"JARA LLIGUIN JULIO LEONARDO",          saldoInicial:48411.80,  saldoDeteriora:40362.10,  saldoContiene:2138.78,  saldoLibera:5910.92,  pctLibera:12.21 },
-      { cobrador:"OLAYA ACURIO  JOSE GABRIEL",           saldoInicial:180375.87, saldoDeteriora:118219.42, saldoContiene:41031.81, saldoLibera:21124.64, pctLibera:11.71 },
-      { cobrador:"GONZALEZ CORTEZ  ADOLFO MODESTO",      saldoInicial:191176.31, saldoDeteriora:146940.51, saldoContiene:22931.55, saldoLibera:21304.25, pctLibera:11.14 },
-      { cobrador:"ORTEGA URGILES CELIO ISAIAS",          saldoInicial:127915.00, saldoDeteriora:96940.03,  saldoContiene:21350.06, saldoLibera:9624.91,  pctLibera:7.52  },
-    ]
-  }
-  ,
-  {
-    id: "ene2026",
-    label: "Enero 2026",
-    rows: [
-      { cobrador:"VILLARREAL NAVARRETE  FAUSTO ALBERTO", saldoInicial:105404.02, saldoDeteriora:49103.58,  saldoContiene:22412.25, saldoLibera:33888.19, pctLibera:32.15 },
-      { cobrador:"CARRANZA JIMENEZ  FRANKLIN GEOVANNY",  saldoInicial:123895.42, saldoDeteriora:74483.36,  saldoContiene:18843.86, saldoLibera:30568.20, pctLibera:24.67 },
-      { cobrador:"QUINONEZ AYALA JEFFERSON JAVIER",      saldoInicial:118301.48, saldoDeteriora:68999.52,  saldoContiene:27227.36, saldoLibera:22074.60, pctLibera:18.66 },
-      { cobrador:"MILLAN CARVAJAL  RAFAEL ENRIQUE",      saldoInicial:192448.22, saldoDeteriora:117926.72, saldoContiene:38869.01, saldoLibera:35652.49, pctLibera:18.53 },
-      { cobrador:"GUILLERMO MONTANO  LUIS AGUSTIN",      saldoInicial:154314.07, saldoDeteriora:85654.51,  saldoContiene:41273.25, saldoLibera:27386.31, pctLibera:17.75 },
-      { cobrador:"MOSQUERA MEDINA HECTOR DANIEL",        saldoInicial:107559.16, saldoDeteriora:51947.78,  saldoContiene:37930.13, saldoLibera:17681.25, pctLibera:16.44 },
-      { cobrador:"ORTEGA URGILES CELIO ISAIAS",          saldoInicial:143343.20, saldoDeteriora:96512.73,  saldoContiene:26009.46, saldoLibera:20821.01, pctLibera:14.53 },
-      { cobrador:"AGUILAR CONTRERAS  BYRON LUIS",        saldoInicial:143425.34, saldoDeteriora:80922.01,  saldoContiene:45194.87, saldoLibera:17308.46, pctLibera:12.07 },
-      { cobrador:"CHAVEZ GOMEZCUELLO MARIO JAVIER",      saldoInicial:221575.94, saldoDeteriora:160735.40, saldoContiene:32500.62, saldoLibera:28339.92, pctLibera:12.79 },
-      { cobrador:"GONZALEZ CORTEZ  ADOLFO MODESTO",      saldoInicial:173680.55, saldoDeteriora:106515.22, saldoContiene:45959.47, saldoLibera:21205.86, pctLibera:12.21 },
-      { cobrador:"OLAYA ACURIO  JOSE GABRIEL",           saldoInicial:163364.21, saldoDeteriora:105072.04, saldoContiene:39813.83, saldoLibera:18478.34, pctLibera:11.31 },
-      { cobrador:"MORAN BARROS  GABRIEL EPIFANIO",       saldoInicial:72735.36,  saldoDeteriora:44740.08,  saldoContiene:20381.73, saldoLibera:7613.55,  pctLibera:10.47 },
-      { cobrador:"JARA LLIGUIN JULIO LEONARDO",          saldoInicial:38319.99,  saldoDeteriora:31446.04,  saldoContiene:3115.17,  saldoLibera:3758.78,  pctLibera:9.81  },
-      { cobrador:"MENDOZA JIMENEZ VICTOR DARIO",         saldoInicial:191331.93, saldoDeteriora:136888.00, saldoContiene:38094.36, saldoLibera:16349.57, pctLibera:8.55  },
-    ]
-  }
-  ,
-  {
-    id: "feb2026",
-    label: "Febrero 2026",
-    rows: [
-      { cobrador:"MOSQUERA MEDINA HECTOR DANIEL",        saldoInicial:110492.26, saldoDeteriora:52813.37,  saldoContiene:23397.34, saldoLibera:34281.55, pctLibera:31.03 },
-      { cobrador:"VILLARREAL NAVARRETE  FAUSTO ALBERTO", saldoInicial:105229.97, saldoDeteriora:55514.64,  saldoContiene:20433.24, saldoLibera:29282.09, pctLibera:27.83 },
-      { cobrador:"AGUILAR CONTRERAS  BYRON LUIS",        saldoInicial:154703.17, saldoDeteriora:79959.29,  saldoContiene:32558.33, saldoLibera:42185.55, pctLibera:27.27 },
-      { cobrador:"MENDOZA JIMENEZ VICTOR DARIO",         saldoInicial:185809.09, saldoDeteriora:92956.48,  saldoContiene:46738.54, saldoLibera:46114.07, pctLibera:24.82 },
-      { cobrador:"GONZALEZ CORTEZ  ADOLFO MODESTO",      saldoInicial:187353.95, saldoDeteriora:120342.98, saldoContiene:27047.63, saldoLibera:39963.34, pctLibera:21.33 },
-      { cobrador:"OLAYA ACURIO  JOSE GABRIEL",           saldoInicial:153491.72, saldoDeteriora:94260.45,  saldoContiene:25876.80, saldoLibera:33354.47, pctLibera:21.73 },
-      { cobrador:"MORAN BARROS  GABRIEL EPIFANIO",       saldoInicial:90332.50,  saldoDeteriora:41626.61,  saldoContiene:28535.85, saldoLibera:20170.04, pctLibera:22.33 },
-      { cobrador:"ORTEGA URGILES CELIO ISAIAS",          saldoInicial:146431.19, saldoDeteriora:94780.02,  saldoContiene:29573.50, saldoLibera:22077.67, pctLibera:15.08 },
-      { cobrador:"CHAVEZ GOMEZCUELLO MARIO JAVIER",      saldoInicial:225406.24, saldoDeteriora:156181.66, saldoContiene:35445.37, saldoLibera:33779.21, pctLibera:14.99 },
-      { cobrador:"QUINONEZ AYALA JEFFERSON JAVIER",      saldoInicial:121065.74, saldoDeteriora:89228.89,  saldoContiene:16786.40, saldoLibera:15050.45, pctLibera:12.43 },
-      { cobrador:"GUILLERMO MONTANO  LUIS AGUSTIN",      saldoInicial:161836.91, saldoDeteriora:98289.97,  saldoContiene:46491.41, saldoLibera:17055.53, pctLibera:10.54 },
-      { cobrador:"MILLAN CARVAJAL  RAFAEL ENRIQUE",      saldoInicial:208058.40, saldoDeteriora:134693.79, saldoContiene:55967.31, saldoLibera:17397.30, pctLibera:8.36  },
-      { cobrador:"JARA LLIGUIN JULIO LEONARDO",          saldoInicial:33795.29,  saldoDeteriora:23271.14,  saldoContiene:8405.63,  saldoLibera:2118.52,  pctLibera:6.27  },
-      { cobrador:"CARRANZA JIMENEZ  FRANKLIN GEOVANNY",  saldoInicial:129102.26, saldoDeteriora:90281.80,  saldoContiene:32941.63, saldoLibera:5878.83,  pctLibera:4.55  },
-    ]
-  }
-  // ← Agrega nuevos meses aquí con la misma estructura
-];
-
-// ══════════════════════════════════════════════
-// STATE
-// ══════════════════════════════════════════════
-const META = 24.01;
-let activePeriod = PERIODS[PERIODS.length-1].id;
-let activeFilter = 'all';
-let activeMonth  = PERIODS[PERIODS.length-1].id;
-
-// ══════════════════════════════════════════════
-// HELPERS
-// ══════════════════════════════════════════════
-function classify(pct){
-  if(pct>META)   return "sobre";
-  if(pct>20.00)  return "cerca";
-  if(pct>15.00)  return "minimo";
-  return "nocumple";
-}
-function fmt(n){ return n.toLocaleString('es-EC',{minimumFractionDigits:2,maximumFractionDigits:2}); }
-function dotClr(cls){ return {sobre:"var(--sobre)",cerca:"var(--cerca)",minimo:"var(--minimo)",nocumple:"var(--nocumple)"}[cls]; }
-function pctCls(cls){ return cls+"-color"; }
-
-// Average per cobrador across ALL periods
-function buildAllAvgs(){
-  const map={};
-  PERIODS.forEach(p=>p.rows.forEach(r=>{
-    const k=r.cobrador.trim();
-    if(!map[k]) map[k]={sum:0,n:0};
-    map[k].sum+=r.pctLibera; map[k].n++;
-  }));
-  const out={};
-  Object.keys(map).forEach(k=>{ out[k]=map[k].sum/map[k].n; });
-  return out;
-}
-
-// ══════════════════════════════════════════════
-// GET ROWS FOR CURRENT VIEW
-// ══════════════════════════════════════════════
-function getRows(){
-  const allAvgs = buildAllAvgs();
-  const periods = activeMonth==='all' ? PERIODS : PERIODS.filter(p=>p.id===activeMonth);
-
-  // Aggregate by cobrador across selected periods
-  const agg={};
-  periods.forEach(p=>p.rows.forEach(r=>{
-    const k=r.cobrador.trim();
-    if(!agg[k]) agg[k]={cobrador:r.cobrador,si:0,sd:0,sc:0,sl:0,pcts:[]};
-    agg[k].si+=r.saldoInicial; agg[k].sd+=r.saldoDeteriora;
-    agg[k].sc+=r.saldoContiene; agg[k].sl+=r.saldoLibera;
-    agg[k].pcts.push(r.pctLibera);
-  }));
-
-  let rows = Object.values(agg).map(m=>{
-    const avgPeriod = m.pcts.reduce((a,b)=>a+b,0)/m.pcts.length;
-    return {
-      cobrador:m.cobrador, saldoInicial:m.si, saldoDeteriora:m.sd,
-      saldoContiene:m.sc, saldoLibera:m.sl,
-      pctLibera: avgPeriod,
-      avgHistorico: allAvgs[m.cobrador.trim()] ?? avgPeriod,
-      meses: m.pcts.length,
-    };
-  });
-
-  if(activeFilter!=='all') rows=rows.filter(r=>classify(r.pctLibera)===activeFilter);
-  rows.sort((a,b)=>b.pctLibera-a.pctLibera);
-  return rows;
-}
-
-// ══════════════════════════════════════════════
-// BUILD HTML
-// ══════════════════════════════════════════════
-function buildContent(){
-  const rows=getRows();
-  const showAvg = PERIODS.length>1;
-
-  const si=rows.reduce((s,r)=>s+r.saldoInicial,0);
-  const sd=rows.reduce((s,r)=>s+r.saldoDeteriora,0);
-  const sc=rows.reduce((s,r)=>s+r.saldoContiene,0);
-  const sl=rows.reduce((s,r)=>s+r.saldoLibera,0);
-  const totalPct=si>0?(sl/si)*100:0;
-  const avgHist=rows.length>0?rows.reduce((s,r)=>s+r.avgHistorico,0)/rows.length:0;
-
-  const counts={sobre:0,cerca:0,minimo:0,nocumple:0};
-  rows.forEach(r=>{ counts[classify(r.pctLibera)]++; });
-
-  const periodLabel = activeMonth==='all'
-    ? (PERIODS.length>1?`${PERIODS[0].label} – ${PERIODS[PERIODS.length-1].label}`:PERIODS[0].label)
-    : (PERIODS.find(p=>p.id===activeMonth)?.label ?? '');
-
-  // KPI
-  const kpiHTML=`
-  <div class="kpi-row">
-    <div class="kpi-card sobre" onclick="toggleKpi('sobre')">
-      <div class="kpi-label">Sobre Meta</div>
-      <div class="kpi-count">${counts.sobre}</div>
-      <div class="kpi-sub">&gt; 24,01%</div>
+    <div class="formula-sep"></div>
+    <div class="formula-group">
+      <div class="fg-title">📈 Cuartil 4 — =+CUARTIL(Oct:Feb ; 4) ≡ máx</div>
+      <div class="fg-cobradores">
+        <span class="fg-chip chip-q4">GABRIEL MORAN</span>
+        <span class="fg-chip chip-q4">JOSE OLAYA</span>
+        <span class="fg-chip chip-q4">ADOLFO GONZALEZ</span>
+        <span class="fg-chip chip-q4">MARIO CHAVEZ</span>
+        <span class="fg-chip chip-q4">VICTOR MENDOZA</span>
+        <span class="fg-chip chip-q4">FRANKLIN CARRANZA</span>
+      </div>
+      <div class="fg-formula">=+CUARTIL(Oct_Feb_del_cobrador ; 4) → máximo de sus 5 meses</div>
     </div>
-    <div class="kpi-card cerca" onclick="toggleKpi('cerca')">
-      <div class="kpi-label">Cerca Meta</div>
-      <div class="kpi-count">${counts.cerca}</div>
-      <div class="kpi-sub">20,01% – 24,00%</div>
-    </div>
-    <div class="kpi-card minimo" onclick="toggleKpi('minimo')">
-      <div class="kpi-label">Mínimo Meta</div>
-      <div class="kpi-count">${counts.minimo}</div>
-      <div class="kpi-sub">15,01% – 20,00%</div>
-    </div>
-    <div class="kpi-card nocumple" onclick="toggleKpi('nocumple')">
-      <div class="kpi-label">No Cumple</div>
-      <div class="kpi-count">${counts.nocumple}</div>
-      <div class="kpi-sub">≤ 15,00%</div>
-    </div>
-  </div>`;
-
-  const avgTh = showAvg ? `<th class="avg-col">⌀ Prom. Histórico</th>` : '';
-
-  // total row
-  const tCls=classify(totalPct);
-  const aHCls=classify(avgHist);
-  const totalAvgTd = showAvg ? `<td class="avg-td">
-    <div class="pct-cell">
-      <div class="status-dot" style="background:${dotClr(aHCls)}"></div>
-      <span class="pct-val ${pctCls(aHCls)}">${avgHist.toFixed(2).replace('.',',')} %</span>
-    </div></td>` : '';
-
-  const totalRowHTML = rows.length>0 ? `
-  <tr class="total-row">
-    <td>Total</td>
-    <td>${fmt(si)}</td><td>${fmt(sd)}</td><td>${fmt(sc)}</td><td>${fmt(sl)}</td>
-    <td><div class="pct-cell">
-      <div class="status-dot" style="background:${dotClr(tCls)}"></div>
-      <span class="pct-val ${pctCls(tCls)}">${totalPct.toFixed(2).replace('.',',')} %</span>
-    </div></td>
-    ${totalAvgTd}
-  </tr>` : '';
-
-  // data rows
-  const rowsHTML = rows.length===0
-    ? `<tr class="no-results-row"><td colspan="${showAvg?7:6}">Sin resultados para este filtro.</td></tr>`
-    : rows.map(r=>{
-        const cls=classify(r.pctLibera);
-        const bW=Math.min(100,(r.pctLibera/35)*100).toFixed(1);
-        const aCls=classify(r.avgHistorico);
-        const aBW=Math.min(100,(r.avgHistorico/35)*100).toFixed(1);
-        const avgTd = showAvg ? `<td class="avg-td">
-          <div class="pct-cell">
-            <span class="bar-wrap"><span class="bar-fill" style="width:${aBW}%;background:${dotClr(aCls)}"></span></span>
-            <div class="status-dot" style="background:${dotClr(aCls)}"></div>
-            <span class="pct-val ${pctCls(aCls)}">${r.avgHistorico.toFixed(2).replace('.',',')} %</span>
-          </div></td>` : '';
-        return `<tr style="background:var(--${cls}-bg)">
-          <td>${r.cobrador}</td>
-          <td>${fmt(r.saldoInicial)}</td><td>${fmt(r.saldoDeteriora)}</td>
-          <td>${fmt(r.saldoContiene)}</td><td>${fmt(r.saldoLibera)}</td>
-          <td><div class="pct-cell">
-            <span class="bar-wrap"><span class="bar-fill" style="width:${bW}%;background:${dotClr(cls)}"></span></span>
-            <div class="status-dot" style="background:${dotClr(cls)}"></div>
-            <span class="pct-val ${pctCls(cls)}">${r.pctLibera.toFixed(2).replace('.',',')} %</span>
-          </div></td>
-          ${avgTd}
-        </tr>`;
-      }).join('');
-
-  const filterTag = activeFilter!=='all'
-    ? `<span class="results-tag">${rows.length} resultado${rows.length!==1?'s':''}</span>` : '';
-
-  return `
-  ${kpiHTML}
-  <div class="table-wrap">
-    <div class="table-header">
-      <div class="table-title">Cobradores Zona Milagro — ${periodLabel}</div>
-      <div style="display:flex;align-items:center;gap:10px;">
-        ${filterTag}
-        <div class="table-meta">${rows.length} cobrador${rows.length!==1?'es':''} &nbsp;·&nbsp; Meta: 24,01%</div>
+    <div class="formula-sep"></div>
+    <div class="formula-group">
+      <div class="fg-title">🎯 Meta Mínima 18,01% — Fija</div>
+      <div class="fg-cobradores">
+        <span class="fg-chip chip-mn">JEFFERSON QUINONEZ</span>
+        <span class="fg-chip chip-mn">CELIO ORTEGA</span>
+        <span class="fg-chip chip-mn">GUILLERMO MONTANO</span>
+        <span class="fg-chip chip-mn">MILLAN CARVAJAL</span>
+      </div>
+      <div class="fg-formula">Meta fija = 18,01% (Jefferson, Celio, Guillermo, Rafael Millán)</div>
+      <div style="margin-top:6px;">
+        <div class="fg-title" style="color:#fb923c;">🎯 Meta Mínima 15,01% — Fija</div>
+        <div class="fg-cobradores">
+          <span class="fg-chip" style="background:rgba(251,146,60,0.15);color:#fb923c;border:1px solid rgba(251,146,60,0.3);">JULIO JARA</span>
+        </div>
+        <div class="fg-formula" style="color:#fb923c88;">Meta fija = 15,01% (Julio Jara)</div>
       </div>
     </div>
-    <table>
-      <thead><tr>
-        <th>Cobrador</th>
-        <th>Saldo Inicial</th><th>Saldo Deteriora</th>
-        <th>Saldo Contiene</th><th>Saldo Libera</th>
-        <th>% Libera</th>${avgTh}
-      </tr></thead>
-      <tbody>${totalRowHTML}${rowsHTML}</tbody>
-    </table>
-  </div>`;
+  </div>
+
+  <!-- MASTER TABLE -->
+  <div>
+    <div class="section-title">📋 Tabla Maestra — % Libera por Mes + Nueva Meta Individual</div>
+    <div class="master-wrap">
+      <div class="master-head">
+        <div class="master-title">Todos los Cobradores · Oct–Feb 2025/26 · Meta calculada por =CUARTIL individual</div>
+        <div class="tbl-legend">
+          <div class="tl-item"><div class="tl-dot" style="background:var(--green2)"></div>Cumple meta</div>
+          <div class="tl-item"><div class="tl-dot" style="background:var(--red2)"></div>No cumple</div>
+          <div class="tl-item"><div class="tl-dot" style="background:var(--q3-color)"></div>Cuartil 3</div>
+          <div class="tl-item"><div class="tl-dot" style="background:var(--q4-color)"></div>Cuartil 4</div>
+          <div class="tl-item"><div class="tl-dot" style="background:var(--qmin-color)"></div>Mín 18,01%</div>
+          <div class="tl-item"><div class="tl-dot" style="background:#fb923c"></div>Mín 15,01%</div>
+        </div>
+      </div>
+      <div class="tbl-scroll">
+        <table class="mt" id="masterTable"></table>
+      </div>
+    </div>
+  </div>
+
+  <!-- EVOLUTION -->
+  <div>
+    <div class="section-title">📊 Evolución Individual — Líneas: % Libera · Nueva Meta · Meta Corporativa</div>
+    <div class="two-col">
+      <div class="selector-panel">
+        <div class="panel-hdr">
+          <span>Cobradores</span>
+          <span class="panel-hdr-count" id="listCount">14</span>
+        </div>
+        <div class="panel-search">
+          <input type="text" id="searchInput" placeholder="Buscar por nombre…" oninput="applyFilters()">
+        </div>
+        <div class="panel-filters">
+          <span style="font-size:0.58rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-dim);align-self:center;">Grupo:</span>
+          <button class="filt-btn active-all" id="fGrpAll" onclick="setGrpFilter('all')">Todos</button>
+          <button class="filt-btn" id="fGrpQ3" onclick="setGrpFilter('q3')">🟢 Cuartil 3</button>
+          <button class="filt-btn" id="fGrpQ4" onclick="setGrpFilter('q4')">🔵 Cuartil 4</button>
+          <button class="filt-btn" id="fGrpMn" onclick="setGrpFilter('mn')">🟡 Mínimo</button>
+        </div>
+
+
+        <div class="panel-sort">
+          <span class="panel-sort-label">Ordenar:</span>
+          <button class="sort-btn active" id="sortGrp"  onclick="setSort('group')">Grupo</button>
+          <button class="sort-btn" id="sortAsc"  onclick="setSort('asc')">% ▲</button>
+          <button class="sort-btn" id="sortDesc" onclick="setSort('desc')">% ▼</button>
+          <button class="sort-btn" id="sortName" onclick="setSort('name')">Nombre</button>
+        </div>
+        <div class="clist-results" id="listResultsLabel"></div>
+        <div class="clist" id="collectorList"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div class="chart-panel">
+          <div class="chart-hdr">
+            <div>
+              <div class="chart-nm" id="chartName">Seleccione un cobrador</div>
+              <div class="chart-sb" id="chartSub">Haga clic en la lista o en la tabla</div>
+            </div>
+            <div class="cbadges" id="chartBadges"></div>
+          </div>
+          <div class="lgnd" id="chartLegend"></div>
+          <div class="chart-area"><canvas id="mainChart" height="165"></canvas></div>
+        </div>
+        <div class="dtbl-wrap" id="dtblWrap" style="display:none;">
+          <div class="dtbl-hdr" id="dtblTitle">Detalle mensual</div>
+          <div style="overflow-x:auto;">
+            <table class="dtbl">
+              <thead><tr>
+                <th style="text-align:left;">Mes</th>
+                <th>% Libera</th>
+                <th>Nueva Meta</th>
+                <th>Fórmula</th>
+                <th>Meta Corp.</th>
+                <th>vs Nueva Meta</th>
+                <th>Estado</th>
+              </tr></thead>
+              <tbody id="dtblBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+<footer>Dashboard Cobradores Zona Milagro &nbsp;·&nbsp; =CUARTIL(rango_mensual_individual ; 3/4) &nbsp;·&nbsp; Meta corporativa 24,01% &nbsp;·&nbsp; 2026</footer>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// DATA — 5 meses Oct–Feb por cobrador
+// Cada cobrador tiene exactamente sus 5 valores mensuales en
+// el orden: [oct, nov, dic, ene, feb]
+// ══════════════════════════════════════════════════════════════
+const MONTH_LABELS = ["Oct 25","Nov 25","Dic 25","Ene 26","Feb 26"];
+const MONTH_SHORT  = ["Oct","Nov","Dic","Ene","Feb"];
+const META_CORP    = 24.01;
+const FIXED_MIN    = 18.01;  // Jefferson, Celio, Guillermo, Rafael Millán
+const FIXED_MIN2   = 15.01;  // Julio Jara
+
+// Groups exactly as specified
+const GROUP_Q3   = ["MOSQUERA MEDINA HECTOR DANIEL","VILLARREAL NAVARRETE FAUSTO ALBERTO","AGUILAR CONTRERAS BYRON LUIS"];
+const GROUP_Q4   = ["MORAN BARROS GABRIEL EPIFANIO","OLAYA ACURIO JOSE GABRIEL","GONZALEZ CORTEZ ADOLFO MODESTO","CHAVEZ GOMEZCUELLO MARIO JAVIER","MENDOZA JIMENEZ VICTOR DARIO","CARRANZA JIMENEZ FRANKLIN GEOVANNY"];
+const GROUP_MIN  = ["QUINONEZ AYALA JEFFERSON JAVIER","GUILLERMO MONTANO LUIS AGUSTIN","MILLAN CARVAJAL RAFAEL ENRIQUE","ORTEGA URGILES CELIO ISAIAS","JARA LLIGUIN JULIO LEONARDO"];
+const GROUP_MIN2 = ["JARA LLIGUIN JULIO LEONARDO"]; // Meta mínima 15,01%
+
+// Monthly data per cobrador — [oct, nov, dic, ene, feb]
+const COBRADOR_DATA = {
+  "MOSQUERA MEDINA HECTOR DANIEL":       [25.25, 20.87, 26.02, 16.44, 31.03],
+  "VILLARREAL NAVARRETE FAUSTO ALBERTO": [20.94, 24.10, 26.68, 32.15, 27.83],
+  "AGUILAR CONTRERAS BYRON LUIS":        [15.05, 25.58, 12.66, 12.07, 27.27],
+  "MENDOZA JIMENEZ VICTOR DARIO":        [14.60, 16.94, 17.02,  8.55, 24.82],
+  "MORAN BARROS GABRIEL EPIFANIO":       [17.30, 18.26, 16.46, 10.47, 22.33],
+  "OLAYA ACURIO JOSE GABRIEL":           [16.89, 15.71, 11.71, 11.31, 21.73],
+  "GONZALEZ CORTEZ ADOLFO MODESTO":      [ 9.89, 14.19, 11.14, 12.21, 21.33],
+  "ORTEGA URGILES CELIO ISAIAS":         [13.09, 16.91,  7.52, 14.53, 15.08],
+  "CHAVEZ GOMEZCUELLO MARIO JAVIER":     [11.54, 20.51, 14.14, 12.79, 14.99],
+  "QUINONEZ AYALA JEFFERSON JAVIER":     [13.82,  8.52, 13.02, 18.66, 12.43],
+  "GUILLERMO MONTANO LUIS AGUSTIN":      [19.71, 12.40, 17.35, 17.75, 10.54],
+  "MILLAN CARVAJAL RAFAEL ENRIQUE":      [ 9.93, 12.45, 15.81, 18.53,  8.36],
+  "JARA LLIGUIN JULIO LEONARDO":         [12.99,  7.98, 12.21,  9.81,  6.27],
+  "CARRANZA JIMENEZ FRANKLIN GEOVANNY":  [14.76, 23.26, 18.09, 24.67,  4.55],
+};
+
+// All cobradores in display order (Q3 first, then Q4, then MIN)
+const ALL_COBRADORES = [...GROUP_Q3, ...GROUP_Q4, ...GROUP_MIN];
+
+// ── Excel QUARTILE (same interpolation) ──
+function excelQuartile(arr, q) {
+  const s = [...arr].filter(v=>v!=null).sort((a,b)=>a-b);
+  if(!s.length) return 0;
+  const pos = (q/4)*(s.length-1);
+  const lo=Math.floor(pos), hi=Math.ceil(pos);
+  if(lo===hi) return s[lo];
+  return s[lo]+(pos-lo)*(s[hi]-s[lo]);
 }
 
-// ══════════════════════════════════════════════
-// RENDER
-// ══════════════════════════════════════════════
-function render(){
-  // Tabs
-  document.getElementById('tabNav').innerHTML = PERIODS.map(p=>`
-    <button class="tab-btn ${p.id===activePeriod?'active':''}" onclick="switchTab('${p.id}')">${p.label}</button>
-  `).join('');
-
-  // Month select options
-  const sel=document.getElementById('monthSelect');
-  sel.innerHTML='';
-  PERIODS.forEach(p=>{ const o=new Option(p.label,p.id); sel.add(o); });
-  sel.value=activeMonth;
-
-  // Filter buttons
-  document.querySelectorAll('.filter-btn').forEach(btn=>{
-    const cls=[...btn.classList].find(c=>c.startsWith('f-'))?.replace('f-','');
-    if(cls) btn.classList.toggle('active', cls===activeFilter);
-  });
-
-  // Content
-  document.getElementById('mainContent').innerHTML=buildContent();
-
-  // KPI highlight
-  document.querySelectorAll('.kpi-card').forEach(card=>{
-    const cls=[...card.classList].find(c=>['sobre','cerca','minimo','nocumple'].includes(c));
-    card.classList.toggle('selected-kpi', cls===activeFilter);
-  });
+// Get group for cobrador
+function getGroup(name) {
+  if(GROUP_Q3.includes(name))   return 'q3';
+  if(GROUP_Q4.includes(name))   return 'q4';
+  if(GROUP_MIN2.includes(name)) return 'mn2';
+  return 'mn';
 }
 
-// ══════════════════════════════════════════════
-// ACTIONS
-// ══════════════════════════════════════════════
-function switchTab(id){
-  activePeriod=id; activeMonth=id; render();
-}
-function setFilter(f){
-  activeFilter=f; render();
-}
-function toggleKpi(f){
-  activeFilter=(activeFilter===f)?'all':f; render();
-}
-function setMonthFilter(v){
-  activeMonth=v;
-  if(v!=='all') activePeriod=v;
-  render();
+// Compute individual meta for cobrador based on their own 5-month data
+function computeIndividualMeta(name) {
+  const vals = COBRADOR_DATA[name];
+  if(!vals) return FIXED_MIN;
+  const grp = getGroup(name);
+  if(grp==='q3')   return parseFloat(excelQuartile(vals,3).toFixed(2));
+  if(grp==='q4')   return parseFloat(excelQuartile(vals,4).toFixed(2)); // Q4 = max
+  if(grp==='mn2')  return FIXED_MIN2;  // Julio Jara 15,01%
+  return FIXED_MIN;  // Jefferson, Celio via MIN, Guillermo, Rafael Millán 18,01%
 }
 
-// ══════════════════════════════════════════════
-// COBRADOR DETAIL
-// ══════════════════════════════════════════════
-let cobradorChart = null;
+// ── Colors & labels ──
+function grpColor(grp){ return grp==='q3'?'#10b981':grp==='q4'?'#3b82f6':(grp==='mn2'?'#fb923c':'#f59e0b'); }
+function grpLabel(grp){ return grp==='q3'?'Cuartil 3':grp==='q4'?'Cuartil 4':(grp==='mn2'?'Mín 15,01%':'Mín 18,01%'); }
+function grpFormula(grp){ return grp==='q3'?'CUARTIL(·;3)':grp==='q4'?'CUARTIL(·;4)':(grp==='mn2'?'Fijo 15,01%':'Fijo 18,01%'); }
+function grpTagClass(grp){ return grp==='q3'?'tg-q3':grp==='q4'?'tg-q4':(grp==='mn2'?'tg-mn2':'tg-mn'); }
+function nk(s){ return s.trim().replace(/\s+/g,' ').toUpperCase(); }
+function fmt2(v){ return v!=null?v.toFixed(2).replace('.',',')+'%':'—'; }
 
-function getAllCobradores(){
-  const set = new Set();
-  PERIODS.forEach(p => p.rows.forEach(r => set.add(r.cobrador.trim())));
-  return [...set].sort();
+// State
+let selectedCobrador = null;
+let mainChart = null;
+
+// ══════════════════════════════════════════════════════════════
+// UPDATE HEADER META VALUES
+// ══════════════════════════════════════════════════════════════
+function updateHeaderMetas(){
+  // Compute average meta for each group
+  const q3metas = GROUP_Q3.map(c=>computeIndividualMeta(c));
+  const q4metas = GROUP_Q4.map(c=>computeIndividualMeta(c));
+  const avgQ3 = q3metas.reduce((a,b)=>a+b,0)/q3metas.length;
+  const avgQ4 = q4metas.reduce((a,b)=>a+b,0)/q4metas.length;
+  document.getElementById('hQ3').textContent = fmt2(avgQ3);
+  document.getElementById('hQ4').textContent = fmt2(avgQ4);
 }
 
-function getCobradorData(name){
-  if(name === '__TOTAL__'){
-    return PERIODS.map(p => {
-      const si = p.rows.reduce((s,r)=>s+r.saldoInicial,0);
-      const sd = p.rows.reduce((s,r)=>s+r.saldoDeteriora,0);
-      const sc = p.rows.reduce((s,r)=>s+r.saldoContiene,0);
-      const sl = p.rows.reduce((s,r)=>s+r.saldoLibera,0);
-      const pct = si>0?(sl/si)*100:0;
-      return { period: p.label, data: { cobrador:'TOTAL', saldoInicial:si, saldoDeteriora:sd, saldoContiene:sc, saldoLibera:sl, pctLibera:parseFloat(pct.toFixed(2)) } };
+// ══════════════════════════════════════════════════════════════
+// RENDER MASTER TABLE
+// Columns: Cobrador | Oct | Nov | Dic | Ene | Feb | Nueva Meta
+//          | Oct✓✗ | Nov✓✗ | Dic✓✗ | Ene✓✗ | Feb✓✗
+// ══════════════════════════════════════════════════════════════
+function renderMasterTable(){
+  let html = `<thead>
+    <tr class="grp-row">
+      <th class="th-name" rowspan="2">Cobrador</th>
+      <th colspan="5" class="th-grp-months">% Libera por Mes</th>
+      <th class="sep-l th-grp-q3" colspan="1" style="min-width:110px;">Nueva Meta Individual</th>
+      <th class="sep-l th-grp-months" colspan="5">Cumplimiento vs. Nueva Meta ✓ ✗</th>
+    </tr>
+    <tr class="sub-row">`;
+
+  MONTH_SHORT.forEach(m=>{ html+=`<th>${m}</th>`; });
+  html+=`<th class="sep-l th-meta" style="white-space:nowrap;">=CUARTIL(·;q) / Fijo</th>`;
+  MONTH_SHORT.forEach((m,i)=>{ html+=`<th class="sep-l${i>0?' ':''}">${m}</th>`; });
+  html+=`</tr></thead><tbody>`;
+
+  ALL_COBRADORES.forEach(name=>{
+    const vals   = COBRADOR_DATA[name]||[];
+    const meta   = computeIndividualMeta(name);
+    const grp    = getGroup(name);
+    const gColor = grpColor(grp);
+    const isSelected = selectedCobrador===name;
+    const shortName  = name.split(' ').slice(0,3).join(' ');
+
+    // Global rank (position in full sorted list by latest month feb)
+    const globalRank = ALL_COBRADORES.indexOf(name)+1;
+
+    html+=`<tr class="${isSelected?'row-sel':''}" onclick="selectCobrador('${name.replace(/'/g,"\\'")}')">`;
+
+    // Name
+    html+=`<td class="td-name">
+      <span class="rbadge" style="background:${gColor}20;color:${gColor};border:1px solid ${gColor}40;">${globalRank}</span>
+      <span title="${name}">${shortName}</span>
+    </td>`;
+
+    // Monthly % cells
+    vals.forEach(v=>{
+      const barW = Math.min(100,(v/35)*100).toFixed(0);
+      const metColor = v>=meta?'#34d399':'#f87171';
+      html+=`<td>
+        <div class="pct-wrap">
+          <span class="pct-num" style="color:${metColor}">${v.toFixed(2).replace('.',',')}%</span>
+          <div class="pct-bar"><div class="pct-fill" style="width:${barW}%;background:${gColor}"></div></div>
+        </div>
+      </td>`;
     });
-  }
-  return PERIODS.map(p => {
-    const row = p.rows.find(r => r.cobrador.trim() === name);
-    return { period: p.label, data: row || null };
+    if(vals.length<5){ for(let i=vals.length;i<5;i++) html+=`<td style="color:var(--text-faint)">—</td>`; }
+
+    // Nueva Meta cell
+    const formulaStr = grp==='q3'?'=CUARTIL(·;3)':grp==='q4'?'=CUARTIL(·;4)':'Fijo 15,01%';
+    html+=`<td class="meta-cell sep-l" style="color:${gColor};">
+      <span class="mc-val">${fmt2(meta)}</span>
+      <span class="mc-status mc-na" style="font-size:0.55rem;color:${gColor}88;">${formulaStr}</span>
+    </td>`;
+
+    // Cumplimiento columns
+    vals.forEach((v,i)=>{
+      const meets = v>=meta;
+      html+=`<td class="sep-l" style="color:${meets?'var(--green2)':'var(--red2)'};font-weight:700;font-size:0.75rem;">
+        ${v.toFixed(2).replace('.',',')}%&nbsp;${meets?'✓':'✗'}
+      </td>`;
+    });
+    if(vals.length<5){ for(let i=vals.length;i<5;i++) html+=`<td class="sep-l" style="color:var(--text-faint)">—</td>`; }
+
+    html+=`</tr>`;
   });
+
+  // Footer: averages per group
+  ['q3','q4','mn','mn2'].forEach(grp=>{
+    const grpArr = grp==='q3'?GROUP_Q3:grp==='q4'?GROUP_Q4:grp==='mn2'?GROUP_MIN2:GROUP_MIN.filter(c=>!GROUP_MIN2.includes(c));
+    if(!grpArr.length) return;
+    const gColor = grpColor(grp);
+    const gLbl   = grpLabel(grp);
+    html+=`<tr class="row-footer">`;
+    html+=`<td class="td-name" style="color:${gColor};font-size:0.7rem;letter-spacing:0.5px;">⌀ Promedio ${gLbl}</td>`;
+
+    // avg per month
+    MONTH_LABELS.forEach((_,mi)=>{
+      const avg = grpArr.reduce((s,c)=>s+(COBRADOR_DATA[c]?.[mi]||0),0)/grpArr.length;
+      html+=`<td style="color:${gColor};font-weight:700;">${avg.toFixed(2).replace('.',',')}%</td>`;
+    });
+
+    // avg meta
+    const metas = grpArr.map(c=>computeIndividualMeta(c));
+    const avgMeta = metas.reduce((a,b)=>a+b,0)/metas.length;
+    html+=`<td class="sep-l" style="color:${gColor};font-weight:700;">${fmt2(avgMeta)}</td>`;
+
+    // avg cumplimiento
+    MONTH_LABELS.forEach((_,mi)=>{
+      const cnt    = grpArr.filter(c=>(COBRADOR_DATA[c]?.[mi]||0)>=computeIndividualMeta(c)).length;
+      const total  = grpArr.length;
+      html+=`<td class="sep-l" style="color:${cnt===total?'var(--green2)':cnt>0?'var(--gold2)':'var(--red2)'};font-weight:700;">${cnt}/${total}</td>`;
+    });
+    html+=`</tr>`;
+  });
+
+  html+=`</tbody>`;
+  document.getElementById('masterTable').innerHTML=html;
 }
 
-function renderCobradorSelect(){
-  const sel = document.getElementById('cobradorSelect');
-  const current = sel.value;
-  sel.innerHTML = '';
-  // Total option first
-  const totalOpt = new Option('📊 TOTAL GENERAL', '__TOTAL__');
-  sel.add(totalOpt);
-  // Separator-like disabled option
-  const sep = document.createElement('option');
-  sep.disabled = true;
-  sep.textContent = '──────────────────';
-  sel.add(sep);
-  getAllCobradores().forEach(c => { sel.add(new Option(c, c)); });
-  if(current && (current==='__TOTAL__' || getAllCobradores().includes(current))) sel.value = current;
-  else sel.value = '__TOTAL__';
+// ══════════════════════════════════════════════════════════════
+// FILTER STATE
+// ══════════════════════════════════════════════════════════════
+let filterGrp    = 'all';   // 'all' | 'q3' | 'q4' | 'mn'
+let filterSort   = 'group'; // 'group' | 'asc' | 'desc' | 'name'
+
+function setGrpFilter(v){
+  filterGrp=v;
+  ['all','q3','q4','mn'].forEach(k=>{
+    const el=document.getElementById('fGrp'+k.charAt(0).toUpperCase()+k.slice(1));
+    if(el) el.className='filt-btn'+(v===k?' active-'+k:'');
+  });
+  applyFilters();
 }
 
-function renderCobradorDetail(){
-  const sel = document.getElementById('cobradorSelect');
-  const name = sel.value;
-  if(!name){ document.getElementById('cobradorDetail').innerHTML=''; return; }
 
-  const displayName = name === '__TOTAL__' ? '📊 TOTAL GENERAL — Zona Milagro' : name;
-  const entries = getCobradorData(name);
-  const valid = entries.filter(e => e.data !== null);
-  if(valid.length === 0){
-    document.getElementById('cobradorDetail').innerHTML='<div style="padding:32px;text-align:center;color:var(--text-muted);">Sin datos para este cobrador.</div>';
-    return;
-  }
+function setSort(v){
+  filterSort=v;
+  ['sortGrp','sortAsc','sortDesc','sortName'].forEach((id,i)=>{
+    const el=document.getElementById(id);
+    if(el) el.classList.toggle('active',['group','asc','desc','name'][i]===v);
+  });
+  applyFilters();
+}
 
-  const avgPct = valid.reduce((s,e)=>s+e.data.pctLibera,0)/valid.length;
-  const avgCls = classify(avgPct);
-  const avgSI  = valid.reduce((s,e)=>s+e.data.saldoInicial,0)/valid.length;
-  const avgSD  = valid.reduce((s,e)=>s+e.data.saldoDeteriora,0)/valid.length;
-  const avgSC  = valid.reduce((s,e)=>s+e.data.saldoContiene,0)/valid.length;
-  const avgSL  = valid.reduce((s,e)=>s+e.data.saldoLibera,0)/valid.length;
+function applyFilters(){
+  const search = document.getElementById('searchInput').value.trim().toUpperCase();
+  const mi = 4; // always Feb (latest month)
 
-  const tableRows = entries.map(e => {
-    if(!e.data) return `<tr><td>${e.period}</td><td>—</td><td>—</td><td>—</td><td>—</td><td><span style="color:var(--text-muted);font-size:0.75rem;">Sin datos</span></td></tr>`;
-    const cls=classify(e.data.pctLibera);
-    const bW=Math.min(100,(e.data.pctLibera/35)*100).toFixed(1);
-    return `<tr style="background:var(--${cls}-bg)">
-      <td>${e.period}</td>
-      <td>${fmt(e.data.saldoInicial)}</td><td>${fmt(e.data.saldoDeteriora)}</td>
-      <td>${fmt(e.data.saldoContiene)}</td><td>${fmt(e.data.saldoLibera)}</td>
-      <td><div class="pct-cell">
-        <span class="bar-wrap"><span class="bar-fill" style="width:${bW}%;background:${dotClr(cls)}"></span></span>
-        <div class="status-dot" style="background:${dotClr(cls)}"></div>
-        <span class="pct-val ${pctCls(cls)}">${e.data.pctLibera.toFixed(2).replace('.',',')} %</span>
-      </div></td>
-    </tr>`;
+  // 1) Base list with computed display values
+  let list = ALL_COBRADORES.map((name,globalIdx)=>{
+    const vals  = COBRADOR_DATA[name]||[];
+    const meta  = computeIndividualMeta(name);
+    const grp   = getGroup(name);
+    const pct   = vals[mi]??null;
+    const meets = pct!=null && pct>=meta;
+    return {name,globalIdx,vals,meta,grp,pct,meets};
+  });
+
+  // 2) Filter by search
+  if(search) list=list.filter(r=>r.name.includes(search));
+
+  // 3) Filter by group
+  if(filterGrp!=='all') list=list.filter(r=>r.grp===filterGrp||(filterGrp==='mn'&&r.grp==='mn2'));
+
+  // 4) Sort
+  if(filterSort==='asc')   list.sort((a,b)=>(a.pct??-99)-(b.pct??-99));
+  if(filterSort==='desc')  list.sort((a,b)=>(b.pct??-99)-(a.pct??-99));
+  if(filterSort==='name')  list.sort((a,b)=>a.name.localeCompare(b.name));
+  // 'group' → keep original ALL_COBRADORES order (already default)
+
+  // 6) Render
+  document.getElementById('listCount').textContent=list.length;
+  document.getElementById('listResultsLabel').textContent=
+    list.length===ALL_COBRADORES.length
+      ? `Mostrando todos los cobradores`
+      : `${list.length} de ${ALL_COBRADORES.length} cobrador${list.length!==1?'es':''}`;
+
+  const html = list.map(r=>{
+    const {name,globalIdx,meta,grp,pct,meets} = r;
+    const gColor = grpColor(grp);
+    const fillW  = pct!=null?Math.min(100,(pct/meta)*100).toFixed(1):0;
+    const isActive = selectedCobrador===name;
+    const shortName = name.split(' ').slice(0,2).join(' ');
+    const statusDotColor = pct==null?'var(--text-faint)':meets?'#10b981':'#ef4444';
+
+    return `
+      <div class="citem ${isActive?'active':''}" onclick="selectCobrador('${name.replace(/'/g,"\\'")}')">
+        <div class="ci-rk" style="color:${gColor}">${globalIdx+1}</div>
+        <div class="ci-info">
+          <div class="ci-nm" title="${name}">${shortName}</div>
+          <div class="ci-mt">
+            <span class="ci-pc" style="color:${gColor}">${pct!=null?pct.toFixed(2).replace('.',',')+' %':'—'}</span>
+            <span class="ci-tg ${grpTagClass(grp)}">${grpLabel(grp)}</span>
+            <span style="font-size:0.55rem;color:var(--text-faint);">Meta:${meta.toFixed(2).replace('.',',')}%</span>
+            <span class="ci-status-dot" style="background:${statusDotColor}" title="${meets?'Cumple meta':'No cumple meta'}"></span>
+          </div>
+        </div>
+        <div class="ci-month-pct" style="color:${statusDotColor}">
+          ${pct!=null?pct.toFixed(2).replace('.',',')+'%':'—'}
+        </div>
+        <div class="ci-gb"><div class="ci-gf" style="width:${fillW}%;background:${gColor}"></div></div>
+      </div>`;
   }).join('');
 
-  const avgRow=`<tr class="avg-row">
-    <td>⌀ Promedio</td>
-    <td>${fmt(avgSI)}</td><td>${fmt(avgSD)}</td><td>${fmt(avgSC)}</td><td>${fmt(avgSL)}</td>
-    <td><div class="pct-cell">
-      <div class="status-dot" style="background:${dotClr(avgCls)}"></div>
-      <span class="pct-val ${pctCls(avgCls)}">${avgPct.toFixed(2).replace('.',',')} %</span>
-    </div></td>
-  </tr>`;
-
-  document.getElementById('cobradorDetail').innerHTML=`
-    <div class="cobrador-detail-header">
-      <div class="cobrador-name">${displayName}</div>
-      <div class="cobrador-avg-badge">
-        <span class="badge-label">Promedio histórico</span>
-        <span class="badge-val ${pctCls(avgCls)}">${avgPct.toFixed(2).replace('.',',')} %</span>
-        <div class="status-dot" style="background:${dotClr(avgCls)};width:10px;height:10px;"></div>
-      </div>
-    </div>
-    <div class="chart-container"><canvas id="cobradorChart"></canvas></div>
-    <div class="detail-table-wrap">
-      <table>
-        <thead><tr>
-          <th style="text-align:left;">Mes</th>
-          <th>Saldo Inicial</th><th>Saldo Deteriora</th>
-          <th>Saldo Contiene</th><th>Saldo Libera</th>
-          <th>% Libera</th>
-        </tr></thead>
-        <tbody>${tableRows}${avgRow}</tbody>
-      </table>
+  document.getElementById('collectorList').innerHTML = html ||
+    `<div style="padding:24px 16px;text-align:center;color:var(--text-faint);font-size:0.73rem;">
+      Sin resultados para los filtros aplicados.<br>
+      <span style="font-size:0.62rem;cursor:pointer;color:var(--accent2);text-decoration:underline;" onclick="resetFilters()">Limpiar filtros</span>
     </div>`;
+}
 
-  // Chart
-  if(cobradorChart){ cobradorChart.destroy(); cobradorChart=null; }
-  const labels=entries.map(e=>e.period);
-  const dataPoints=entries.map(e=>e.data?parseFloat(e.data.pctLibera.toFixed(2)):null);
-  const pointColors=entries.map(e=>{
-    if(!e.data) return 'transparent';
-    return {sobre:'#22d47e',cerca:'#f7c948',minimo:'#f78c4f',nocumple:'#f74f6a'}[classify(e.data.pctLibera)];
-  });
-  const ctx=document.getElementById('cobradorChart').getContext('2d');
-  const grad=ctx.createLinearGradient(0,0,0,200);
-  grad.addColorStop(0,'rgba(79,142,247,0.22)');
-  grad.addColorStop(1,'rgba(79,142,247,0.0)');
+function resetFilters(){
+  document.getElementById('searchInput').value='';
+  setGrpFilter('all');
+  setSort('group');
+}
 
-  cobradorChart=new Chart(ctx,{
+// legacy alias kept for backward compat
+function filterList(){ applyFilters(); }
+
+// ══════════════════════════════════════════════════════════════
+// SELECT & CHART
+// ══════════════════════════════════════════════════════════════
+function selectCobrador(name){
+  selectedCobrador=name;
+  applyFilters();
+  renderMasterTable();
+  renderChart();
+}
+
+function renderChart(){
+  if(!selectedCobrador) return;
+  const name  = selectedCobrador;
+  const vals  = COBRADOR_DATA[name]||[];
+  const meta  = computeIndividualMeta(name);
+  const grp   = getGroup(name);
+  const gColor= grpColor(grp);
+  const gLbl  = grpLabel(grp);
+  const formula = grpFormula(grp);
+  const latestPct = vals[vals.length-1]??null;
+
+  // Update header badge
+  updateHeaderMetas();
+
+  document.getElementById('chartName').textContent=name.split(' ').slice(0,3).join(' ');
+  document.getElementById('chartSub').textContent=`${gLbl} · ${formula} · Meta = ${fmt2(meta)}`;
+
+  document.getElementById('chartBadges').innerHTML=`
+    <div class="cbadge cur"><span class="cbl">% Libera Feb</span><span class="cbv">${latestPct!=null?latestPct.toFixed(2).replace('.',',')+' %':'—'}</span></div>
+    <div class="cbadge ind"><span class="cbl">Nueva Meta</span><span class="cbv">${fmt2(meta)}</span></div>
+    <div class="cbadge corp"><span class="cbl">Meta Corp.</span><span class="cbv">24,01%</span></div>`;
+
+  document.getElementById('chartLegend').innerHTML=`
+    <div class="lgnd-i"><div class="lgnd-line" style="background:${gColor};box-shadow:0 0 5px ${gColor}99"></div><span>% Libera</span></div>
+    <div class="lgnd-i"><div class="lgnd-dash" style="border-color:#a78bfa;"></div><span>Nueva Meta (${formula})</span></div>
+    <div class="lgnd-i"><div class="lgnd-dash" style="border-color:#f59e0b;"></div><span>Meta Corporativa 24,01%</span></div>`;
+
+  const ptColors = vals.map(v=>v>=meta?'#10b981':v>=meta*0.85?'#f59e0b':'#ef4444');
+  const metaLine = MONTH_LABELS.map(()=>meta);
+  const corpLine = MONTH_LABELS.map(()=>META_CORP);
+
+  if(mainChart){mainChart.destroy();mainChart=null;}
+  const ctx=document.getElementById('mainChart').getContext('2d');
+  const grad=ctx.createLinearGradient(0,0,0,250);
+  grad.addColorStop(0,gColor+'35'); grad.addColorStop(1,gColor+'00');
+
+  mainChart=new Chart(ctx,{
     type:'line',
     data:{
-      labels,
+      labels:MONTH_LABELS,
       datasets:[
-        { label:'% Libera', data:dataPoints, borderColor:'#4f8ef7', borderWidth:2.5,
-          backgroundColor:grad, fill:true, tension:0.35,
-          pointBackgroundColor:pointColors, pointBorderColor:'#0d0f14',
-          pointBorderWidth:2, pointRadius:7, pointHoverRadius:10, spanGaps:false },
-        { label:'Meta 24,01%', data:Array(labels.length).fill(24.01),
-          borderColor:'rgba(247,201,72,0.7)', borderWidth:1.5, borderDash:[6,4],
-          pointRadius:0, fill:false, tension:0 },
-        { label:`Promedio ${avgPct.toFixed(2).replace('.',',')}%`,
-          data:Array(labels.length).fill(parseFloat(avgPct.toFixed(2))),
-          borderColor:'rgba(79,142,247,0.5)', borderWidth:1.5, borderDash:[3,3],
-          pointRadius:0, fill:false, tension:0 }
+        {label:'% Libera',data:vals,borderColor:gColor,borderWidth:2.5,backgroundColor:grad,fill:true,tension:0.35,
+          pointBackgroundColor:ptColors,pointBorderColor:'#080b12',pointBorderWidth:2,pointRadius:7,pointHoverRadius:10,spanGaps:false,order:0},
+        {label:`Nueva Meta (${formula})`,data:metaLine,borderColor:'#a78bfa',borderWidth:2,borderDash:[7,4],
+          pointRadius:0,fill:false,tension:0,order:1},
+        {label:'Meta Corporativa 24,01%',data:corpLine,borderColor:'#f59e0b',borderWidth:1.5,borderDash:[5,5],
+          pointRadius:0,fill:false,tension:0,order:2}
       ]
     },
     options:{
-      responsive:true, maintainAspectRatio:true, aspectRatio:4,
+      responsive:true,maintainAspectRatio:true,aspectRatio:3.2,
       interaction:{mode:'index',intersect:false},
       plugins:{
-        legend:{labels:{color:'#6b7494',font:{family:'DM Sans',size:11},boxWidth:14,padding:16}},
-        tooltip:{
-          backgroundColor:'#1c2030',borderColor:'#252a3a',borderWidth:1,
-          titleColor:'#e8ecf4',bodyColor:'#9aa3c2',padding:12,
-          callbacks:{label:c=>` ${c.dataset.label}: ${c.parsed.y!==null?c.parsed.y.toFixed(2).replace('.',',')+' %':'N/D'}`}
-        }
+        legend:{display:false},
+        tooltip:{backgroundColor:'#161c2e',borderColor:'#2a3356',borderWidth:1,titleColor:'#e2e8f8',bodyColor:'#8492b8',padding:12,cornerRadius:9,
+          callbacks:{label:c=>` ${c.dataset.label}: ${c.parsed.y!=null?c.parsed.y.toFixed(2).replace('.',',')+'%':'—'}`}}
       },
       scales:{
-        x:{ticks:{color:'#6b7494',font:{family:'DM Sans',size:11}},grid:{color:'rgba(37,42,58,0.8)'}},
-        y:{ticks:{color:'#6b7494',font:{family:'JetBrains Mono',size:10},callback:v=>v.toFixed(1)+'%'},
-           grid:{color:'rgba(37,42,58,0.8)'},min:0}
+        x:{ticks:{color:'#8492b8',font:{family:'Syne',size:11}},grid:{color:'rgba(42,51,86,0.5)'}},
+        y:{ticks:{color:'#8492b8',font:{family:'JetBrains Mono',size:9},callback:v=>v.toFixed(1)+'%'},
+          grid:{color:'rgba(42,51,86,0.5)'},min:0,suggestedMax:35}
       }
     }
   });
+
+  renderDetailTable(name,vals,meta,grp);
 }
 
-render();
-renderCobradorSelect();
-renderCobradorDetail();
+function renderDetailTable(name,vals,meta,grp){
+  const wrap=document.getElementById('dtblWrap');
+  wrap.style.display='block';
+  document.getElementById('dtblTitle').textContent=`Detalle mensual — ${name.split(' ').slice(0,3).join(' ')} · Nueva Meta = ${fmt2(meta)}`;
+  const formula = grpFormula(grp);
+  const gColor  = grpColor(grp);
+
+  document.getElementById('dtblBody').innerHTML=MONTH_LABELS.map((lbl,i)=>{
+    const v=vals[i];
+    if(v==null) return `<tr><td>${lbl}</td><td colspan="6" style="text-align:center;color:var(--text-faint)">Sin datos</td></tr>`;
+    const diff=v-meta;
+    const diffStr=`<span class="${diff>=0?'up':'dn'}">${diff>=0?'▲':'▼'} ${Math.abs(diff).toFixed(2).replace('.',',')}pp</span>`;
+    let sc,sd,st;
+    if(diff>=0){sc='win';sd='#10b981';st='Cumple';}
+    else if(diff>=-3){sc='near';sd='#f59e0b';st='Cerca';}
+    else{sc='miss';sd='#ef4444';st='No Cumple';}
+    return `<tr>
+      <td>${lbl}</td>
+      <td style="color:${gColor};font-weight:600">${v.toFixed(2).replace('.',',')}%</td>
+      <td style="color:#a78bfa;font-weight:700">${fmt2(meta)}</td>
+      <td style="color:#a78bfa88;font-size:0.65rem;">${formula}</td>
+      <td style="color:#f59e0b">${META_CORP.toFixed(2).replace('.',',')}%</td>
+      <td style="text-align:right">${diffStr}</td>
+      <td style="text-align:center"><span class="schip ${sc}"><span class="cdot" style="background:${sd}"></span>${st}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── INIT ──
+updateHeaderMetas();
+renderMasterTable();
+applyFilters();
+selectCobrador(ALL_COBRADORES[0]);
 </script>
 </body>
 </html>
