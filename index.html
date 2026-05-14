@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Cobradores — Zona Milagro</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#f5f0e8;--surface:#ede8dc;--surface2:#e4ddd0;--surface3:#d8d0c0;
+  --border:#c8bfae;--border2:#b5aa96;
+  --text:#2a2318;--text-dim:#6b5e4a;--text-faint:#a89880;
+  --accent:#3b6ea5;--accent2:#2d5a8e;
+  --gold:#b5860d;--green:#1a7a52;--green2:#1e8c5e;--red:#a33030;--red2:#c03a3a;
+  --purple:#6a4a9a;--purple2:#8060b8;--coord:#7c3d8a;
+  --q3:#1a7a52;--q4:#2d5a8e;--qmin:#b5860d;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;}
+.page{position:relative;}
+/* HEADER */
+.header{padding:18px 36px 14px;border-bottom:2px solid var(--border2);display:flex;align-items:center;justify-content:space-between;gap:12px;background:linear-gradient(180deg,rgba(59,110,165,.07)0%,transparent 100%);flex-wrap:wrap;}
+.hdr-left{display:flex;align-items:center;gap:12px;}
+.hdr-icon{width:40px;height:40px;background:linear-gradient(135deg,var(--accent),var(--purple));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;box-shadow:0 2px 10px rgba(59,110,165,.22);}
+.hdr-title{font-family:'Bebas Neue',sans-serif;font-size:1.65rem;letter-spacing:3px;color:var(--text);line-height:1;}
+.hdr-sub{font-size:0.63rem;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;margin-top:2px;}
+.hdr-right{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+.hbadge{display:flex;flex-direction:column;align-items:center;padding:5px 12px;border-radius:8px;border:1px solid;}
+.hbadge.corp{border-color:rgba(181,134,13,.5);background:rgba(181,134,13,.1);}
+.hbadge.q3b{border-color:rgba(26,122,82,.4);background:rgba(26,122,82,.08);}
+.hbadge.q4b{border-color:rgba(45,90,142,.4);background:rgba(45,90,142,.08);}
+.hbadge.mnb{border-color:rgba(181,134,13,.35);background:rgba(181,134,13,.06);}
+.hbadge .hbl{font-size:0.54rem;letter-spacing:1.2px;text-transform:uppercase;color:var(--text-dim);white-space:nowrap;}
+.hbadge .hbv{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;letter-spacing:1.5px;line-height:1.1;}
+.hbadge.corp .hbv{color:var(--gold);}
+.hbadge.q3b .hbv{color:var(--q3);}
+.hbadge.q4b .hbv{color:var(--q4);}
+.hbadge.mnb .hbv{color:var(--qmin);}
+/* MAIN */
+.main{padding:20px 36px 60px;display:flex;flex-direction:column;gap:22px;}
+.sec-title{font-family:'Bebas Neue',sans-serif;font-size:0.88rem;letter-spacing:2.5px;color:var(--text-dim);text-transform:uppercase;display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.sec-title::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--border2)0%,transparent 100%);}
+/* FORMULA BAR */
+.fbar{display:flex;align-items:stretch;gap:10px;padding:12px 18px;background:var(--surface);border:1px solid var(--border2);border-radius:11px;flex-wrap:wrap;box-shadow:0 1px 4px rgba(0,0,0,.06);}
+.fg{display:flex;flex-direction:column;gap:5px;flex:1;min-width:190px;}
+.fg-t{font-size:0.58rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--text-dim);}
+.fg-chips{display:flex;flex-wrap:wrap;gap:4px;}
+.chip{font-size:0.62rem;font-weight:600;padding:2px 8px;border-radius:17px;white-space:nowrap;}
+.cq3{background:rgba(26,122,82,.15);color:var(--q3);border:1px solid rgba(26,122,82,.3);}
+.cq4{background:rgba(45,90,142,.15);color:var(--q4);border:1px solid rgba(45,90,142,.3);}
+.cmn{background:rgba(181,134,13,.15);color:var(--qmin);border:1px solid rgba(181,134,13,.3);}
+.cmn2{background:rgba(200,100,30,.15);color:#a05020;border:1px solid rgba(200,100,30,.3);}
+.fg-code{font-family:'IBM Plex Mono',monospace;font-size:0.64rem;padding:4px 9px;border-radius:5px;background:var(--surface2);border:1px solid var(--border2);color:var(--accent);}
+.fg-sep{width:1px;background:var(--border2);flex-shrink:0;}
+/* MASTER TABLE */
+.mw{background:var(--surface);border:1px solid var(--border2);border-radius:13px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,.07);}
+.mw-head{padding:12px 18px;border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:7px;background:var(--surface2);}
+.mw-title{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:2px;color:var(--text);}
+.legend{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.li{display:flex;align-items:center;gap:4px;font-size:0.6rem;color:var(--text-dim);}
+.ldot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.tscroll{overflow-x:auto;}
+.tscroll::-webkit-scrollbar{height:4px;}.tscroll::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+table.mt{width:100%;border-collapse:collapse;min-width:1050px;}
+table.mt thead tr.gr th{padding:8px 10px;font-size:0.55rem;font-weight:700;letter-spacing:.9px;text-transform:uppercase;text-align:center;white-space:nowrap;}
+table.mt thead tr.gr th.thn{text-align:left;min-width:180px;background:var(--surface3);color:var(--text-dim);}
+.th-m{background:rgba(45,90,142,.1);color:var(--q4);}
+.th-q3{background:rgba(26,122,82,.12);color:var(--q3);}
+.th-mn{background:rgba(181,134,13,.1);color:var(--qmin);}
+table.mt thead tr.sr th{background:var(--surface2);padding:6px 10px;font-size:0.53rem;font-weight:700;letter-spacing:.7px;text-transform:uppercase;text-align:center;color:var(--text-dim);border-bottom:2px solid var(--border2);white-space:nowrap;}
+table.mt thead tr.sr th.thn{text-align:left;}
+.sl{border-left:2px solid var(--border2)!important;}
+table.mt tbody tr{border-bottom:1px solid rgba(180,160,130,.35);cursor:pointer;transition:background .12s;}
+table.mt tbody tr:hover td{background:rgba(0,0,0,.022)!important;}
+table.mt tbody tr.rsel td{background:rgba(45,90,142,.07)!important;}
+table.mt tbody tr.rsel td.tdn{border-left:3px solid var(--accent);}
+table.mt tbody tr.rfoot{background:var(--surface3)!important;cursor:default;border-top:2px solid var(--border2);}
+table.mt tbody tr.rfoot:hover td{background:var(--surface3)!important;}
+table.mt tbody td{padding:7px 10px;font-family:'IBM Plex Mono',monospace;font-size:0.69rem;text-align:center;color:var(--text-dim);vertical-align:middle;}
+table.mt tbody td.tdn{font-family:'DM Sans',sans-serif;font-size:0.71rem;font-weight:600;color:var(--text);text-align:left;padding-left:12px;}
+.rk{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:50%;font-family:'Bebas Neue',sans-serif;font-size:0.75rem;margin-right:6px;flex-shrink:0;vertical-align:middle;}
+.pw{display:flex;flex-direction:column;align-items:center;gap:2px;}
+.pn{font-family:'IBM Plex Mono',monospace;font-size:0.69rem;font-weight:600;line-height:1;}
+.pb{width:36px;height:3px;background:rgba(0,0,0,.08);border-radius:2px;overflow:hidden;}
+.pf{height:100%;border-radius:2px;}
+.mc{font-family:'IBM Plex Mono',monospace;font-size:0.71rem;font-weight:700;text-align:center;}
+table.mt tbody tr.coord-row td{background:rgba(124,61,138,.03);}
+table.mt tbody tr.coord-row:hover td{background:rgba(124,61,138,.08)!important;}
+table.mt tbody tr.coord-row.rsel td{background:rgba(124,61,138,.09)!important;}
+/* TWO COL */
+.two-col{display:grid;grid-template-columns:305px 1fr;gap:14px;align-items:start;}
+.sel-panel{background:var(--surface);border:1px solid var(--border2);border-radius:12px;overflow:hidden;box-shadow:0 2px 5px rgba(0,0,0,.06);}
+.sp-hdr{padding:10px 13px;border-bottom:1px solid var(--border2);font-size:0.59rem;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--text-dim);display:flex;align-items:center;justify-content:space-between;background:var(--surface2);}
+.sp-cnt{font-family:'Bebas Neue',sans-serif;font-size:.92rem;color:var(--accent);letter-spacing:1px;}
+.sp-search{padding:7px 10px;border-bottom:1px solid var(--border);}
+.sp-search input{width:100%;background:var(--surface2);border:1px solid var(--border2);border-radius:6px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.71rem;padding:5px 9px 5px 29px;outline:none;transition:border-color .2s;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='13' height='13' fill='none' viewBox='0 0 24 24'%3E%3Ccircle cx='11' cy='11' r='8' stroke='%236b5e4a' stroke-width='2'/%3E%3Cpath d='m21 21-4.35-4.35' stroke='%236b5e4a' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:9px center;}
+.sp-search input:focus{border-color:var(--accent);}
+.sp-search input::placeholder{color:var(--text-faint);}
+.sp-filters{padding:7px 10px;border-bottom:1px solid var(--border);display:flex;gap:4px;flex-wrap:wrap;}
+.fb{background:var(--surface2);border:1px solid var(--border2);border-radius:17px;color:var(--text-dim);font-family:'DM Sans',sans-serif;font-size:0.59rem;font-weight:700;padding:3px 9px;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.fb:hover{border-color:var(--accent);color:var(--text);}
+.fb.fa{background:var(--accent);border-color:var(--accent);color:#fff;}
+.fb.fq3{background:var(--q3);border-color:var(--q3);color:#fff;}
+.fb.fq4{background:var(--q4);border-color:var(--q4);color:#fff;}
+.fb.fmn{background:var(--qmin);border-color:var(--qmin);color:#fff;}
+.sp-sort{padding:5px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;}
+.ssl{font-size:0.57rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text-dim);flex-shrink:0;}
+.sb{background:none;border:1px solid var(--border2);border-radius:5px;color:var(--text-dim);font-family:'DM Sans',sans-serif;font-size:0.59rem;font-weight:600;padding:2px 7px;cursor:pointer;transition:all .15s;}
+.sb:hover{border-color:var(--accent);color:var(--text);}
+.sb.sa{background:var(--surface3);border-color:var(--accent);color:var(--accent);}
+.sp-rl{padding:4px 10px 2px;font-size:0.57rem;color:var(--text-faint);letter-spacing:.4px;}
+.clist{max-height:430px;overflow-y:auto;}
+.clist::-webkit-scrollbar{width:3px;}.clist::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px;}
+.ci{display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;border-bottom:1px solid rgba(180,160,130,.27);transition:background .12s;position:relative;}
+.ci:hover{background:var(--surface2);}
+.ci.act{background:rgba(45,90,142,.07);border-left:2px solid var(--accent);}
+.ci:last-child{border-bottom:none;}
+.ci-rk{font-family:'Bebas Neue',sans-serif;font-size:.9rem;line-height:1;width:18px;text-align:center;flex-shrink:0;}
+.ci-inf{flex:1;min-width:0;}
+.ci-nm{font-size:0.68rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ci-mt{display:flex;align-items:center;gap:5px;margin-top:2px;flex-wrap:wrap;}
+.ci-pc{font-family:'IBM Plex Mono',monospace;font-size:0.65rem;font-weight:600;}
+.ci-tg{font-size:0.52rem;font-weight:700;letter-spacing:.4px;padding:1px 5px;border-radius:8px;}
+.tq3{background:rgba(26,122,82,.15);color:var(--q3);}
+.tq4{background:rgba(45,90,142,.15);color:var(--q4);}
+.tmn{background:rgba(181,134,13,.15);color:var(--qmin);}
+.tmn2{background:rgba(200,100,30,.15);color:#a05020;}
+.tcoord{background:rgba(124,61,138,.15);color:var(--coord);}
+.ci-dot{width:5px;height:5px;border-radius:50%;flex-shrink:0;}
+.ci-pct{font-size:0.59rem;font-weight:700;font-family:'IBM Plex Mono',monospace;margin-left:auto;flex-shrink:0;}
+.ci-bar{position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--border);}
+.ci-bf{height:100%;border-radius:2px;transition:width .4s;}
+/* CHART */
+.chart-panel{background:var(--surface);border:1px solid var(--border2);border-radius:12px;overflow:hidden;box-shadow:0 2px 5px rgba(0,0,0,.06);}
+.ch-hdr{padding:12px 16px 9px;border-bottom:1px solid var(--border2);display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:8px;background:var(--surface2);}
+.ch-nm{font-family:'Bebas Neue',sans-serif;font-size:1.18rem;letter-spacing:3px;color:var(--text);line-height:1;}
+.ch-sb{font-size:0.57rem;color:var(--text-dim);margin-top:2px;letter-spacing:.9px;text-transform:uppercase;}
+.ch-badges{display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
+.cbdg{display:flex;flex-direction:column;align-items:flex-end;padding:4px 10px;border-radius:6px;border:1px solid;}
+.cbdg .cbl{font-size:0.51rem;letter-spacing:.9px;text-transform:uppercase;opacity:.7;}
+.cbdg .cbv{font-family:'Bebas Neue',sans-serif;font-size:1.08rem;letter-spacing:1px;line-height:1.1;}
+.cbdg.corp{border-color:rgba(181,134,13,.4);background:rgba(181,134,13,.07);}
+.cbdg.corp .cbv{color:var(--gold);}
+.cbdg.ind{border-color:rgba(106,74,154,.35);background:rgba(106,74,154,.07);}
+.cbdg.ind .cbv{color:var(--purple);}
+.cbdg.cur{border-color:rgba(45,90,142,.35);background:rgba(45,90,142,.07);}
+.cbdg.cur .cbv{color:var(--accent);}
+.lgnd{display:flex;align-items:center;gap:13px;padding:6px 16px 9px;flex-wrap:wrap;}
+.lgi{display:flex;align-items:center;gap:4px;font-size:0.6rem;color:var(--text-dim);}
+.ll{width:15px;height:2px;border-radius:1px;}
+.ld{width:15px;height:0;border-top:2px dashed;}
+.ch-area{padding:13px 13px 7px;}
+/* DETAIL TABLE */
+.dtbl-wrap{background:var(--surface);border:1px solid var(--border2);border-radius:12px;overflow:hidden;box-shadow:0 2px 5px rgba(0,0,0,.06);}
+.dt-hdr{padding:10px 15px;border-bottom:1px solid var(--border2);font-size:0.59rem;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--text-dim);background:var(--surface2);}
+table.dtbl{width:100%;border-collapse:collapse;}
+table.dtbl thead th{background:var(--surface2);padding:7px 11px;font-size:0.55rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--text-dim);text-align:right;border-bottom:1px solid var(--border2);white-space:nowrap;}
+table.dtbl thead th:first-child{text-align:left;}
+table.dtbl tbody td{padding:7px 11px;font-family:'IBM Plex Mono',monospace;font-size:0.69rem;color:var(--text-dim);text-align:right;border-bottom:1px solid rgba(180,160,130,.27);}
+table.dtbl tbody td:first-child{font-family:'DM Sans',sans-serif;font-size:0.71rem;font-weight:600;color:var(--text);text-align:left;}
+table.dtbl tbody tr:last-child td{border-bottom:none;}
+table.dtbl tbody tr:hover td{background:rgba(0,0,0,.017);}
+.schip{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:17px;font-family:'IBM Plex Mono',monospace;font-size:0.65rem;font-weight:600;}
+.schip.win{background:rgba(26,122,82,.12);color:var(--green2);border:1px solid rgba(26,122,82,.25);}
+.schip.near{background:rgba(181,134,13,.12);color:var(--gold);border:1px solid rgba(181,134,13,.25);}
+.schip.miss{background:rgba(160,48,48,.12);color:var(--red2);border:1px solid rgba(160,48,48,.25);}
+.cdot2{width:4px;height:4px;border-radius:50%;flex-shrink:0;}
+.up{color:var(--green2);font-size:0.66rem;}.dn{color:var(--red2);font-size:0.66rem;}
+/* COORDINADOR */
+.coord-wrap{background:var(--surface);border:2px solid rgba(124,61,138,.28);border-radius:13px;overflow:hidden;box-shadow:0 3px 10px rgba(124,61,138,.09);}
+.cms{padding:11px 18px;background:rgba(124,61,138,.05);border-bottom:1px solid rgba(124,61,138,.16);display:flex;align-items:center;gap:13px;flex-wrap:wrap;}
+.cms-lbl{font-size:0.59rem;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--coord);flex-shrink:0;white-space:nowrap;}
+.cms-btns{display:flex;gap:5px;flex-wrap:wrap;}
+.msb{font-family:'IBM Plex Mono',monospace;font-size:0.66rem;font-weight:600;padding:4px 10px;border-radius:6px;border:1px solid rgba(124,61,138,.28);background:transparent;color:var(--text-dim);cursor:pointer;transition:all .15s;}
+.msb.on{background:var(--coord);border-color:var(--coord);color:#fff;box-shadow:0 2px 5px rgba(124,61,138,.26);}
+.msb:hover:not(.on){border-color:var(--coord);color:var(--coord);}
+.cq-badges{display:flex;gap:7px;flex-wrap:wrap;}
+.cqb{display:flex;flex-direction:column;align-items:center;padding:3px 10px;border-radius:6px;border:1px solid rgba(124,61,138,.26);background:rgba(124,61,138,.07);}
+.cqb .cql{font-size:0.51rem;letter-spacing:.9px;text-transform:uppercase;color:var(--coord);}
+.cqb .cqv{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:1px;color:var(--coord);}
+.coord-head{padding:11px 18px;border-bottom:1px solid rgba(124,61,138,.16);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:9px;background:rgba(124,61,138,.04);}
+.coord-title-blk{display:flex;align-items:center;gap:10px;}
+.coord-icon{width:35px;height:35px;background:linear-gradient(135deg,#7c3d8a,#9b59b6);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.95rem;box-shadow:0 2px 6px rgba(124,61,138,.28);}
+.coord-name{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:2.5px;color:var(--coord);}
+.coord-sub{font-size:0.57rem;color:var(--text-dim);letter-spacing:1.1px;text-transform:uppercase;margin-top:2px;}
+.coord-badges{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.coord-badge{display:flex;flex-direction:column;align-items:flex-end;padding:4px 10px;border-radius:6px;border:1px solid rgba(124,61,138,.26);background:rgba(124,61,138,.06);}
+.coord-badge .cbl2{font-size:0.51rem;letter-spacing:.8px;text-transform:uppercase;color:var(--text-dim);}
+.coord-badge .cbv2{font-family:'Bebas Neue',sans-serif;font-size:1.05rem;letter-spacing:1px;line-height:1.1;color:var(--coord);}
+.coord-badge.tup .cbv2{color:var(--green);}
+.coord-badge.tdn .cbv2{color:var(--red);}
+.coord-body{display:grid;grid-template-columns:1fr 400px;gap:0;}
+.coord-tbl{overflow-x:auto;border-right:1px solid rgba(124,61,138,.14);}
+table.ctbl{width:100%;border-collapse:collapse;min-width:460px;}
+table.ctbl thead th{background:rgba(124,61,138,.07);padding:7px 12px;font-size:0.55rem;font-weight:700;letter-spacing:.9px;text-transform:uppercase;color:var(--coord);text-align:right;border-bottom:1px solid rgba(124,61,138,.17);white-space:nowrap;}
+table.ctbl thead th:first-child{text-align:left;}
+table.ctbl tbody td{padding:8px 12px;font-family:'IBM Plex Mono',monospace;font-size:0.7rem;color:var(--text-dim);text-align:right;border-bottom:1px solid rgba(124,61,138,.09);}
+table.ctbl tbody td:first-child{font-family:'DM Sans',sans-serif;font-size:0.71rem;font-weight:600;color:var(--text);text-align:left;}
+table.ctbl tbody tr.excl td{opacity:.38;}
+table.ctbl tbody tr.totrow td{background:rgba(124,61,138,.07);font-weight:700;border-top:2px solid rgba(124,61,138,.18);}
+table.ctbl tbody tr:hover:not(.totrow) td{background:rgba(124,61,138,.035);}
+.cpu{color:var(--green);font-weight:700;}.cpd{color:var(--red);font-weight:700;}.cpn{color:var(--coord);font-weight:700;}
+.coord-chart-side{padding:13px 15px 10px;display:flex;flex-direction:column;}
+.coord-lgnd{display:flex;align-items:center;gap:11px;margin-bottom:7px;flex-wrap:wrap;}
+.coord-lgi{display:flex;align-items:center;gap:4px;font-size:0.59rem;color:var(--text-dim);}
+footer{text-align:center;padding:14px;font-size:0.55rem;color:var(--text-faint);letter-spacing:1.3px;text-transform:uppercase;border-top:1px solid var(--border2);background:var(--surface2);}
+@media(max-width:1100px){.header,.main{padding-left:12px;padding-right:12px;}.two-col{grid-template-columns:1fr;}.coord-body{grid-template-columns:1fr;}.coord-tbl{border-right:none;border-bottom:1px solid rgba(124,61,138,.14);}}
+</style>
+</head>
+<body>
+<div class="page">
+<header class="header">
+  <div class="hdr-left">
+    <div class="hdr-icon">📍</div>
+    <div>
+      <div class="hdr-title">Metas Individuales — Zona Milagro</div>
+      <div class="hdr-sub">CUARTIL por cobrador · Oct 25–Abr 26 · Meta corporativa 24,01% · 7 meses</div>
+    </div>
+  </div>
+  <div class="hdr-right">
+    <div class="hbadge corp"><span class="hbl">Meta Corp.</span><span class="hbv">24,01%</span></div>
+    <div class="hbadge q3b"><span class="hbl">Q3 · Hector/Fausto/Byron</span><span class="hbv" id="hQ3">—</span></div>
+    <div class="hbadge q4b"><span class="hbl">Q4 · 6 cobradores</span><span class="hbv" id="hQ4">—</span></div>
+    <div class="hbadge mnb"><span class="hbl">Mín 18,01%</span><span class="hbv">18,01%</span></div>
+    <div class="hbadge mnb" style="border-color:rgba(200,100,30,.4);background:rgba(200,100,30,.07);"><span class="hbl">Mín 15,01% · Julio</span><span class="hbv" style="color:#a05020;">15,01%</span></div>
+  </div>
+</header>
+
+<main class="main">
+  <div class="fbar">
+    <div class="fg">
+      <div class="fg-t">🏆 Cuartil 3 — =CUARTIL(Oct:Abr ; 3)</div>
+      <div class="fg-chips"><span class="chip cq3">HECTOR MOSQUERA</span><span class="chip cq3">FAUSTO VILLARREAL</span><span class="chip cq3">BYRON AGUILAR</span></div>
+      <div class="fg-code">=CUARTIL(7 meses ; 3) → 75° percentil</div>
+    </div>
+    <div class="fg-sep"></div>
+    <div class="fg">
+      <div class="fg-t">📈 Cuartil 4 — =CUARTIL(Oct:Abr ; 4) ≡ máx</div>
+      <div class="fg-chips"><span class="chip cq4">GABRIEL MORAN</span><span class="chip cq4">JOSE OLAYA</span><span class="chip cq4">ADOLFO GONZALEZ</span><span class="chip cq4">MARIO CHAVEZ</span><span class="chip cq4">VICTOR MENDOZA</span><span class="chip cq4">FRANKLIN CARRANZA</span></div>
+      <div class="fg-code">=CUARTIL(7 meses ; 4) → máximo</div>
+    </div>
+    <div class="fg-sep"></div>
+    <div class="fg">
+      <div class="fg-t">🎯 Meta Mínima Fija</div>
+      <div class="fg-chips"><span class="chip cmn">JEFFERSON</span><span class="chip cmn">CELIO</span><span class="chip cmn">GUILLERMO</span><span class="chip cmn">MILLAN</span></div>
+      <div class="fg-code">Fijo 18,01%</div>
+      <div class="fg-chips" style="margin-top:4px;"><span class="chip cmn2">JULIO JARA</span></div>
+      <div class="fg-code" style="color:#a0502088;">Fijo 15,01%</div>
+    </div>
+  </div>
+
+  <div>
+    <div class="sec-title">📋 Tabla Maestra — Oct 25–Abr 26 + Meta Individual + Coordinador al final</div>
+    <div class="mw">
+      <div class="mw-head">
+        <div class="mw-title">Todos los Cobradores + Coord. Christian Sánchez · =CUARTIL individual · 7 meses</div>
+        <div class="legend">
+          <div class="li"><div class="ldot" style="background:var(--green2)"></div>Cumple</div>
+          <div class="li"><div class="ldot" style="background:var(--red2)"></div>No cumple</div>
+          <div class="li"><div class="ldot" style="background:var(--q3)"></div>Cuartil 3</div>
+          <div class="li"><div class="ldot" style="background:var(--q4)"></div>Cuartil 4</div>
+          <div class="li"><div class="ldot" style="background:var(--qmin)"></div>Mín 18%</div>
+          <div class="li"><div class="ldot" style="background:#a05020"></div>Mín 15%</div>
+          <div class="li"><div class="ldot" style="background:var(--coord)"></div>Coordinador</div>
+        </div>
+      </div>
+      <div class="tscroll"><table class="mt" id="masterTable"></table></div>
+    </div>
+  </div>
+
+  <div>
+    <div class="sec-title">📊 Evolución Individual — Selecciona un cobrador o el Coordinador</div>
+    <div class="two-col">
+      <div class="sel-panel">
+        <div class="sp-hdr"><span>Cobradores</span><span class="sp-cnt" id="listCount">14</span></div>
+        <div class="sp-search"><input type="text" id="searchInput" placeholder="Buscar por nombre…" oninput="applyFilters()"></div>
+        <div class="sp-filters">
+          <span style="font-size:0.55rem;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--text-dim);align-self:center;">Grupo:</span>
+          <button class="fb fa" id="fGrpAll" onclick="setGrpFilter('all')">Todos</button>
+          <button class="fb" id="fGrpQ3" onclick="setGrpFilter('q3')">🟢 Q3</button>
+          <button class="fb" id="fGrpQ4" onclick="setGrpFilter('q4')">🔵 Q4</button>
+          <button class="fb" id="fGrpMn" onclick="setGrpFilter('mn')">🟡 Mín</button>
+        </div>
+        <div class="sp-sort">
+          <span class="ssl">Orden:</span>
+          <button class="sb sa" id="sortGrp" onclick="setSort('group')">Grupo</button>
+          <button class="sb" id="sortAsc" onclick="setSort('asc')">% ▲</button>
+          <button class="sb" id="sortDesc" onclick="setSort('desc')">% ▼</button>
+          <button class="sb" id="sortName" onclick="setSort('name')">A-Z</button>
+        </div>
+        <div class="sp-rl" id="listResultsLabel"></div>
+        <div class="clist" id="collectorList"></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:11px;">
+        <div class="chart-panel">
+          <div class="ch-hdr">
+            <div><div class="ch-nm" id="chartName">Seleccione un cobrador</div><div class="ch-sb" id="chartSub">Haga clic en la lista o tabla</div></div>
+            <div class="ch-badges" id="chartBadges"></div>
+          </div>
+          <div class="lgnd" id="chartLegend"></div>
+          <div class="ch-area"><canvas id="mainChart" height="155"></canvas></div>
+        </div>
+        <div class="dtbl-wrap" id="dtblWrap" style="display:none;">
+          <div class="dt-hdr" id="dtblTitle">Detalle mensual</div>
+          <div style="overflow-x:auto;">
+            <table class="dtbl"><thead><tr>
+              <th style="text-align:left;">Mes</th><th>% Libera</th><th>Meta</th><th>Fórmula</th><th>24,01%</th><th>vs Meta</th><th>Estado</th>
+            </tr></thead><tbody id="dtblBody"></tbody></table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════ COORDINADOR ═══════ -->
+  <div>
+    <div class="sec-title">👤 COORD. CHRISTIAN SÁNCHEZ — % Libera Total Zona Milagro · Cuartiles por Meses Seleccionados</div>
+    <div class="coord-wrap">
+      <div class="cms">
+        <span class="cms-lbl">Meses para cuartil:</span>
+        <div class="cms-btns">
+          <button class="msb on" id="msb0" onclick="toggleMonth(0)">Oct 25</button>
+          <button class="msb on" id="msb1" onclick="toggleMonth(1)">Nov 25</button>
+          <button class="msb on" id="msb2" onclick="toggleMonth(2)">Dic 25</button>
+          <button class="msb on" id="msb3" onclick="toggleMonth(3)">Ene 26</button>
+          <button class="msb on" id="msb4" onclick="toggleMonth(4)">Feb 26</button>
+          <button class="msb on" id="msb5" onclick="toggleMonth(5)">Mar 26</button>
+          <button class="msb on" id="msb6" onclick="toggleMonth(6)">Abr 26</button>
+        </div>
+        <div class="cq-badges" id="cqBadges"></div>
+      </div>
+      <div class="coord-head">
+        <div class="coord-title-blk">
+          <div class="coord-icon">👤</div>
+          <div>
+            <div class="coord-name">SÁNCHEZ ARREAGA CHRISTIAN — COORDINADOR ZONA MILAGRO</div>
+            <div class="coord-sub">% Libera Total · Saldo Libera ÷ Saldo Inicial · =CUARTIL(meses seleccionados ; 3/4)</div>
+          </div>
+        </div>
+        <div class="coord-badges" id="coordBadges"></div>
+      </div>
+      <div class="coord-body">
+        <div class="coord-tbl">
+          <table class="ctbl">
+            <thead><tr>
+              <th style="text-align:left;">Mes</th>
+              <th>Saldo Inicial</th>
+              <th>Saldo Libera</th>
+              <th>% Libera</th>
+              <th>vs Mes Ant.</th>
+              <th>vs Cuartil 3</th>
+              <th>vs 24,01%</th>
+            </tr></thead>
+            <tbody id="coordTblBody"></tbody>
+          </table>
+        </div>
+        <div class="coord-chart-side">
+          <div class="coord-lgnd" id="coordLgnd"></div>
+          <canvas id="coordChart" height="180"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+<footer>Dashboard Cobradores Zona Milagro &nbsp;·&nbsp; =CUARTIL(rango;3/4) &nbsp;·&nbsp; Meta corporativa 24,01% &nbsp;·&nbsp; Oct 25–Abr 26 &nbsp;·&nbsp; ElhyAi Consultores 2026</footer>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════
+const ML  = ["Oct 25","Nov 25","Dic 25","Ene 26","Feb 26","Mar 26","Abr 26"];
+const MS  = ["Oct","Nov","Dic","Ene","Feb","Mar","Abr"];
+const MC  = 24.01;
+const FM  = 18.01;
+const FM2 = 15.01;
+
+const GQ3  = ["MOSQUERA MEDINA HECTOR DANIEL","VILLARREAL NAVARRETE FAUSTO ALBERTO","AGUILAR CONTRERAS BYRON LUIS"];
+const GQ4  = ["MORAN BARROS GABRIEL EPIFANIO","OLAYA ACURIO JOSE GABRIEL","GONZALEZ CORTEZ ADOLFO MODESTO","CHAVEZ GOMEZCUELLO MARIO JAVIER","MENDOZA JIMENEZ VICTOR DARIO","CARRANZA JIMENEZ FRANKLIN GEOVANNY"];
+const GMIN = ["QUINONEZ AYALA JEFFERSON JAVIER","GUILLERMO MONTANO LUIS AGUSTIN","MILLAN CARVAJAL RAFAEL ENRIQUE","ORTEGA URGILES CELIO ISAIAS","JARA LLIGUIN JULIO LEONARDO"];
+const GM2  = ["JARA LLIGUIN JULIO LEONARDO"];
+const ALL  = [...GQ3,...GQ4,...GMIN];
+
+const CD = {
+  "MOSQUERA MEDINA HECTOR DANIEL":       [25.25,20.87,26.02,16.44,31.03,34.64,26.75],
+  "VILLARREAL NAVARRETE FAUSTO ALBERTO": [20.94,24.10,26.68,32.15,27.83,32.87,25.16],
+  "AGUILAR CONTRERAS BYRON LUIS":        [15.05,25.58,12.66,12.07,27.27,10.96,31.49],
+  "MENDOZA JIMENEZ VICTOR DARIO":        [14.60,16.94,17.02, 8.55,24.82,20.21,28.44],
+  "MORAN BARROS GABRIEL EPIFANIO":       [17.30,18.26,16.46,10.47,22.33,30.08,23.00],
+  "OLAYA ACURIO JOSE GABRIEL":           [16.89,15.71,11.71,11.31,21.73,19.45,25.05],
+  "GONZALEZ CORTEZ ADOLFO MODESTO":      [ 9.89,14.19,11.14,12.21,21.33, 7.51,19.41],
+  "ORTEGA URGILES CELIO ISAIAS":         [13.09,16.91, 7.52,14.53,15.08,27.30,15.17],
+  "CHAVEZ GOMEZCUELLO MARIO JAVIER":     [11.54,20.51,14.14,12.79,14.99,17.10,11.76],
+  "QUINONEZ AYALA JEFFERSON JAVIER":     [13.82, 8.52,13.02,18.66,12.43,12.61,17.37],
+  "GUILLERMO MONTANO LUIS AGUSTIN":      [19.71,12.40,17.35,17.75,10.54,14.35,15.41],
+  "MILLAN CARVAJAL RAFAEL ENRIQUE":      [ 9.93,12.45,15.81,18.53, 8.36,11.94,17.63],
+  "JARA LLIGUIN JULIO LEONARDO":         [12.99, 7.98,12.21, 9.81, 6.27,10.95,10.54],
+  "CARRANZA JIMENEZ FRANKLIN GEOVANNY":  [14.76,23.26,18.09,24.67, 4.55,27.55,25.63],
+};
+
+// Coordinador: % Libera Total de Zona cada mes
+const COORD = {
+  vals:     [14.57,16.87,15.05,15.24,17.60,19.10,20.73],
+  saldoIni: [2021815.32,2000241.57,2035958.98,1979533.40,2042931.91,2203392.53,2357944.14],
+  saldoLib: [294491.94, 337508.67, 306380.59, 301722.50, 359594.67, 420952.29, 488879.06],
+  color:    '#7c3d8a',
+};
+
+// Meses activos para cuartil del Coordinador
+let SEL = [true,true,true,true,true,true,true];
+
+// ═══════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════
+function excelQ(arr,q){
+  const s=[...arr].filter(v=>v!=null).sort((a,b)=>a-b);
+  if(!s.length)return 0;
+  const pos=(q/4)*(s.length-1),lo=Math.floor(pos),hi=Math.ceil(pos);
+  return lo===hi?s[lo]:s[lo]+(pos-lo)*(s[hi]-s[lo]);
+}
+function grp(n){if(GQ3.includes(n))return 'q3';if(GQ4.includes(n))return 'q4';if(GM2.includes(n))return 'mn2';return 'mn';}
+function cobMeta(n){
+  const v=CD[n];if(!v)return FM;
+  const g=grp(n);
+  if(g==='q3')return parseFloat(excelQ(v,3).toFixed(2));
+  if(g==='q4')return parseFloat(excelQ(v,4).toFixed(2));
+  if(g==='mn2')return FM2;
+  return FM;
+}
+function gc(g){return g==='q3'?'#1a7a52':g==='q4'?'#2d5a8e':g==='mn2'?'#a05020':'#b5860d';}
+function gl(g){return g==='q3'?'Cuartil 3':g==='q4'?'Cuartil 4':g==='mn2'?'Mín 15%':'Mín 18%';}
+function gf(g){return g==='q3'?'CUARTIL(·;3)':g==='q4'?'CUARTIL(·;4)':g==='mn2'?'Fijo 15,01%':'Fijo 18,01%';}
+function gt(g){return g==='q3'?'tq3':g==='q4'?'tq4':g==='mn2'?'tmn2':'tmn';}
+function f2(v){return v!=null?v.toFixed(2).replace('.',',')+'%':'—';}
+function fM(n){return n.toLocaleString('es-EC',{minimumFractionDigits:2,maximumFractionDigits:2});}
+
+function coordQ(){
+  const af=COORD.vals.filter((_,i)=>SEL[i]);
+  if(af.length<2)return{q3:0,q4:0,avg:0,n:af.length};
+  return{q3:parseFloat(excelQ(af,3).toFixed(2)),q4:parseFloat(excelQ(af,4).toFixed(2)),avg:parseFloat((af.reduce((a,b)=>a+b,0)/af.length).toFixed(2)),n:af.length};
+}
+
+// ═══════════════════════════════════════════════════
+// TOGGLE MES
+// ═══════════════════════════════════════════════════
+function toggleMonth(i){
+  if(SEL.filter(Boolean).length<=2&&SEL[i])return;
+  SEL[i]=!SEL[i];
+  document.getElementById('msb'+i).classList.toggle('on',SEL[i]);
+  renderCoordSection();
+  renderMasterTable();
+  if(selCob==='COORD')renderCoordChart();
+}
+
+// ═══════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════
+let selCob=null,mainCh=null,coordCh=null,coordChInd=null,fGrp='all',fSort='group';
+
+// ═══════════════════════════════════════════════════
+// HEADER
+// ═══════════════════════════════════════════════════
+function updateHeader(){
+  const q3m=GQ3.map(c=>cobMeta(c)),q4m=GQ4.map(c=>cobMeta(c));
+  document.getElementById('hQ3').textContent=f2(q3m.reduce((a,b)=>a+b,0)/q3m.length);
+  document.getElementById('hQ4').textContent=f2(q4m.reduce((a,b)=>a+b,0)/q4m.length);
+}
+
+// ═══════════════════════════════════════════════════
+// MASTER TABLE
+// ═══════════════════════════════════════════════════
+function renderMasterTable(){
+  const cq=coordQ(),cc=COORD.color;
+  let h=`<thead><tr class="gr">
+    <th class="thn" rowspan="2">Cobrador</th>
+    <th colspan="7" class="th-m">% Libera por Mes (Oct 25 – Abr 26)</th>
+    <th class="sl th-q3" colspan="1" style="min-width:110px;">Meta Individual</th>
+    <th class="sl th-m" colspan="7">Cumplimiento ✓ ✗</th>
+  </tr><tr class="sr">`;
+  MS.forEach((m,i)=>h+=`<th style="${i>=5?'background:rgba(45,90,142,.05);':''}">${m}${i>=5?' ★':''}</th>`);
+  h+=`<th class="sl" style="color:var(--purple2);">=CUARTIL/Fijo</th>`;
+  MS.forEach(m=>h+=`<th class="sl">${m}</th>`);
+  h+=`</tr></thead><tbody>`;
+
+  ALL.forEach(name=>{
+    const v=CD[name]||[],m2=cobMeta(name),g=grp(name),c=gc(g);
+    const isSel=selCob===name,rk=ALL.indexOf(name)+1,sn=name.split(' ').slice(0,3).join(' ');
+    h+=`<tr class="${isSel?'rsel':''}" onclick="selectCob('${name.replace(/'/g,"\\'")}')">`;
+    h+=`<td class="tdn"><span class="rk" style="background:${c}20;color:${c};border:1px solid ${c}40;">${rk}</span><span title="${name}">${sn}</span></td>`;
+    v.forEach((val,i)=>{
+      const bw=Math.min(100,(val/40)*100).toFixed(0),mc2=val>=m2?'#1a7a52':'#a33030';
+      h+=`<td style="${i>=5?'background:rgba(45,90,142,.03);':''}"><div class="pw"><span class="pn" style="color:${mc2}">${val.toFixed(2).replace('.',',')}%</span><div class="pb"><div class="pf" style="width:${bw}%;background:${c}"></div></div></div></td>`;
+    });
+    h+=`<td class="mc sl" style="color:${c};">${f2(m2)}<div style="font-size:.53rem;opacity:.65;">${gf(g)}</div></td>`;
+    v.forEach(val=>{
+      const ok=val>=m2;h+=`<td class="sl" style="color:${ok?'#1a7a52':'#a33030'};font-weight:700;font-size:.69rem;">${val.toFixed(2).replace('.',',')}% ${ok?'✓':'✗'}</td>`;
+    });
+    h+=`</tr>`;
+  });
+
+  // Promedios por grupo
+  [{g:'q3',arr:GQ3},{g:'q4',arr:GQ4},{g:'mn',arr:GMIN.filter(c=>!GM2.includes(c))},{g:'mn2',arr:GM2}].forEach(({g,arr})=>{
+    if(!arr.length)return;
+    const c=gc(g),lab=gl(g);
+    h+=`<tr class="rfoot"><td class="tdn" style="color:${c};font-size:.66rem;">⌀ Promedio ${lab}</td>`;
+    ML.forEach((_,mi)=>{const avg=arr.reduce((s,n)=>s+(CD[n]?.[mi]||0),0)/arr.length;h+=`<td style="color:${c};font-weight:700;">${avg.toFixed(2).replace('.',',')}%</td>`;});
+    const am=arr.map(n=>cobMeta(n)).reduce((a,b)=>a+b,0)/arr.length;
+    h+=`<td class="sl" style="color:${c};font-weight:700;">${f2(am)}</td>`;
+    ML.forEach((_,mi)=>{const cnt=arr.filter(n=>(CD[n]?.[mi]||0)>=cobMeta(n)).length;h+=`<td class="sl" style="color:${cnt===arr.length?'#1a7a52':cnt>0?'#b5860d':'#a33030'};font-weight:700;">${cnt}/${arr.length}</td>`;});
+    h+=`</tr>`;
+  });
+
+  // FILA COORDINADOR
+  const isCsel=selCob==='COORD';
+  h+=`<tr class="coord-row ${isCsel?'rsel':''}" onclick="selectCob('COORD')" style="border-top:3px solid ${cc}35;">`;
+  h+=`<td class="tdn" style="border-left:3px solid ${cc};">
+    <span class="rk" style="background:${cc}20;color:${cc};border:1px solid ${cc}45;">C</span>
+    <span style="color:${cc};font-weight:700;">COORD. CHRISTIAN S.</span>
+    <span style="font-size:0.54rem;background:${cc}14;color:${cc};border:1px solid ${cc}28;border-radius:8px;padding:1px 6px;margin-left:4px;">COORDINADOR</span>
+  </td>`;
+  COORD.vals.forEach((val,i)=>{
+    const bw=Math.min(100,(val/30)*100).toFixed(0),mc2=val>=cq.q3?'#1a7a52':'#a33030';
+    h+=`<td style="${i>=5?'background:rgba(124,61,138,.035);':''}"><div class="pw"><span class="pn" style="color:${mc2}">${val.toFixed(2).replace('.',',')}%</span><div class="pb"><div class="pf" style="width:${bw}%;background:${cc}"></div></div></div></td>`;
+  });
+  h+=`<td class="mc sl" style="color:${cc};">Q3:${cq.q3.toFixed(2).replace('.',',')}%<div style="font-size:.52rem;opacity:.65;">Q4:${cq.q4.toFixed(2).replace('.',',')}%</div></td>`;
+  COORD.vals.forEach(val=>{
+    const ok=val>=cq.q3;h+=`<td class="sl" style="color:${ok?'#1a7a52':'#a33030'};font-weight:700;font-size:.69rem;">${val.toFixed(2).replace('.',',')}% ${ok?'✓':'✗'}</td>`;
+  });
+  h+=`</tr></tbody>`;
+  document.getElementById('masterTable').innerHTML=h;
+}
+
+// ═══════════════════════════════════════════════════
+// FILTROS
+// ═══════════════════════════════════════════════════
+function setGrpFilter(v){
+  fGrp=v;
+  [{id:'fGrpAll',k:'all',cls:'fa'},{id:'fGrpQ3',k:'q3',cls:'fq3'},{id:'fGrpQ4',k:'q4',cls:'fq4'},{id:'fGrpMn',k:'mn',cls:'fmn'}].forEach(({id,k,cls})=>{
+    const el=document.getElementById(id);if(el)el.className='fb'+(v===k?' '+cls:'');
+  });
+  applyFilters();
+}
+function setSort(v){
+  fSort=v;
+  ['sortGrp','sortAsc','sortDesc','sortName'].forEach((id,i)=>{
+    const el=document.getElementById(id);if(el)el.classList.toggle('sa',['group','asc','desc','name'][i]===v);
+  });
+  applyFilters();
+}
+function applyFilters(){
+  const s=document.getElementById('searchInput').value.trim().toUpperCase();
+  let list=ALL.map((name,gi)=>{
+    const v=CD[name]||[],m2=cobMeta(name),g=grp(name);
+    return{name,gi,v,meta:m2,grp:g,pct:v[6]??null,meets:(v[6]??0)>=m2};
+  });
+  if(s)list=list.filter(r=>r.name.includes(s));
+  if(fGrp!=='all')list=list.filter(r=>r.grp===fGrp||(fGrp==='mn'&&r.grp==='mn2'));
+  if(fSort==='asc')list.sort((a,b)=>(a.pct??-99)-(b.pct??-99));
+  if(fSort==='desc')list.sort((a,b)=>(b.pct??-99)-(a.pct??-99));
+  if(fSort==='name')list.sort((a,b)=>a.name.localeCompare(b.name));
+  document.getElementById('listCount').textContent=list.length;
+  document.getElementById('listResultsLabel').textContent=list.length===ALL.length?'Todos':''+list.length+' de '+ALL.length;
+  let html=list.map(r=>{
+    const c=gc(r.grp),fw=r.pct!=null?Math.min(100,(r.pct/r.meta)*100).toFixed(1):0;
+    const isA=selCob===r.name,sc=r.pct==null?'var(--text-faint)':r.meets?'#1a7a52':'#a33030';
+    const sn=r.name.split(' ').slice(0,2).join(' ');
+    return `<div class="ci ${isA?'act':''}" onclick="selectCob('${r.name.replace(/'/g,"\\'")}')">
+      <div class="ci-rk" style="color:${c}">${r.gi+1}</div>
+      <div class="ci-inf">
+        <div class="ci-nm" title="${r.name}">${sn}</div>
+        <div class="ci-mt">
+          <span class="ci-pc" style="color:${c}">${r.pct!=null?r.pct.toFixed(2).replace('.',',')+' %':'—'}</span>
+          <span class="ci-tg ${gt(r.grp)}">${gl(r.grp)}</span>
+          <span style="font-size:.51rem;color:var(--text-faint);">Meta:${r.meta.toFixed(2).replace('.',',')}%</span>
+          <span class="ci-dot" style="background:${sc}"></span>
+        </div>
+      </div>
+      <div class="ci-pct" style="color:${sc}">${r.pct!=null?r.pct.toFixed(2).replace('.',',')+'%':'—'}</div>
+      <div class="ci-bar"><div class="ci-bf" style="width:${fw}%;background:${c}"></div></div>
+    </div>`;
+  }).join('');
+  // Coordinador al final de la lista
+  const cq=coordQ(),cv=COORD.vals[6],cmts=cv>=cq.q3,cc=COORD.color,isCA=selCob==='COORD';
+  html+=`<div class="ci ${isCA?'act':''}" onclick="selectCob('COORD')" style="border-top:2px solid rgba(124,61,138,.22);background:${isCA?'rgba(124,61,138,.07)':'rgba(124,61,138,.02)'};">
+    <div class="ci-rk" style="color:${cc};font-size:.68rem;font-weight:700;">C</div>
+    <div class="ci-inf">
+      <div class="ci-nm" style="color:${cc};font-weight:700;">COORD. CHRISTIAN S.</div>
+      <div class="ci-mt">
+        <span class="ci-pc" style="color:${cc}">${cv.toFixed(2).replace('.',',')} %</span>
+        <span class="ci-tg tcoord">COORDINADOR</span>
+        <span style="font-size:.51rem;color:var(--text-faint);">Q3:${cq.q3.toFixed(2).replace('.',',')}%</span>
+        <span class="ci-dot" style="background:${cmts?'#1a7a52':'#a33030'}"></span>
+      </div>
+    </div>
+    <div class="ci-pct" style="color:${cmts?'#1a7a52':'#a33030'}">${cv.toFixed(2).replace('.',',')+'%'}</div>
+    <div class="ci-bar"><div class="ci-bf" style="width:${Math.min(100,(cv/cq.q3)*100).toFixed(1)}%;background:${cc}"></div></div>
+  </div>`;
+  document.getElementById('collectorList').innerHTML=html;
+}
+
+// ═══════════════════════════════════════════════════
+// SELECT
+// ═══════════════════════════════════════════════════
+function selectCob(name){
+  selCob=name;applyFilters();renderMasterTable();
+  if(name==='COORD')renderCoordChart();else renderChart(name);
+}
+
+// ═══════════════════════════════════════════════════
+// CHART COBRADOR
+// ═══════════════════════════════════════════════════
+function renderChart(name){
+  const v=CD[name]||[],m2=cobMeta(name),g=grp(name),c=gc(g),formula=gf(g);
+  const lat=v[v.length-1]??null;
+  document.getElementById('chartName').textContent=name.split(' ').slice(0,3).join(' ');
+  document.getElementById('chartSub').textContent=gl(g)+' · '+formula+' · Meta='+f2(m2);
+  document.getElementById('chartBadges').innerHTML=`
+    <div class="cbdg cur"><span class="cbl">% Abr</span><span class="cbv">${lat!=null?lat.toFixed(2).replace('.',',')+' %':'—'}</span></div>
+    <div class="cbdg ind"><span class="cbl">Nueva Meta</span><span class="cbv">${f2(m2)}</span></div>
+    <div class="cbdg corp"><span class="cbl">Meta Corp.</span><span class="cbv">24,01%</span></div>`;
+  document.getElementById('chartLegend').innerHTML=`
+    <div class="lgi"><div class="ll" style="background:${c}"></div><span>% Libera</span></div>
+    <div class="lgi"><div class="ld" style="border-color:#6a4a9a;"></div><span>Meta (${formula})</span></div>
+    <div class="lgi"><div class="ld" style="border-color:#b5860d;"></div><span>Meta Corp. 24,01%</span></div>`;
+  const ptC=v.map(val=>val>=m2?'#1a7a52':val>=m2*.85?'#b5860d':'#a33030');
+  const ptB=v.map((_,i)=>i>=5?'#2d5a8e':'rgba(245,240,232,1)');
+  const ptR=v.map((_,i)=>i>=5?9:7);
+  if(mainCh){mainCh.destroy();mainCh=null;}
+  const ctx=document.getElementById('mainChart').getContext('2d');
+  const gr=ctx.createLinearGradient(0,0,0,230);gr.addColorStop(0,c+'26');gr.addColorStop(1,c+'00');
+  mainCh=new Chart(ctx,{type:'line',data:{labels:ML,datasets:[
+    {label:'% Libera',data:v,borderColor:c,borderWidth:2.5,backgroundColor:gr,fill:true,tension:.35,pointBackgroundColor:ptC,pointBorderColor:ptB,pointBorderWidth:2.5,pointRadius:ptR,pointHoverRadius:11,order:0},
+    {label:'Meta',data:ML.map(()=>m2),borderColor:'#6a4a9a',borderWidth:2,borderDash:[7,4],pointRadius:0,fill:false,order:1},
+    {label:'Meta Corp.',data:ML.map(()=>MC),borderColor:'#b5860d',borderWidth:1.5,borderDash:[5,5],pointRadius:0,fill:false,order:2}
+  ]},options:{responsive:true,maintainAspectRatio:true,aspectRatio:3.2,interaction:{mode:'index',intersect:false},
+    plugins:{legend:{display:false},tooltip:{backgroundColor:'#ede8dc',borderColor:'#b5aa96',borderWidth:1,titleColor:'#2a2318',bodyColor:'#6b5e4a',padding:11,cornerRadius:8,callbacks:{label:c2=>` ${c2.dataset.label}: ${c2.parsed.y!=null?c2.parsed.y.toFixed(2).replace('.',',')+'%':'—'}` }}},
+    scales:{x:{ticks:{color:'#6b5e4a',font:{family:'DM Sans',size:10}},grid:{color:'rgba(180,160,130,.21)'}},
+      y:{ticks:{color:'#6b5e4a',font:{family:'IBM Plex Mono',size:9},callback:v2=>v2.toFixed(1)+'%'},grid:{color:'rgba(180,160,130,.21)'},min:0,suggestedMax:38}}}});
+  document.getElementById('dtblWrap').style.display='block';
+  document.getElementById('dtblTitle').textContent='Detalle — '+name.split(' ').slice(0,3).join(' ')+' · Meta='+f2(m2);
+  document.getElementById('dtblBody').innerHTML=ML.map((lbl,i)=>{
+    const val=v[i];if(val==null)return `<tr><td>${lbl}</td><td colspan="6" style="text-align:center;color:var(--text-faint)">Sin datos</td></tr>`;
+    const d=val-m2,ds=`<span class="${d>=0?'up':'dn'}">${d>=0?'▲':'▼'} ${Math.abs(d).toFixed(2).replace('.',',')}pp</span>`;
+    let sc,sd,st;if(d>=0){sc='win';sd='#1a7a52';st='Cumple';}else if(d>=-3){sc='near';sd='#b5860d';st='Cerca';}else{sc='miss';sd='#a33030';st='No Cumple';}
+    return `<tr style="${i>=5?'background:rgba(45,90,142,.04);':''}">
+      <td>${lbl}${i>=5?' ★':''}</td><td style="color:${c};font-weight:600">${val.toFixed(2).replace('.',',')}%</td>
+      <td style="color:#6a4a9a;font-weight:700">${f2(m2)}</td><td style="color:#6a4a9a88;font-size:.62rem;">${formula}</td>
+      <td style="color:#b5860d">${MC.toFixed(2).replace('.',',')}%</td><td style="text-align:right">${ds}</td>
+      <td style="text-align:center"><span class="schip ${sc}"><span class="cdot2" style="background:${sd}"></span>${st}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════
+// COORD CHART (lista lateral)
+// ═══════════════════════════════════════════════════
+function renderCoordChart(){
+  const cq=coordQ(),cc=COORD.color;
+  document.getElementById('chartName').textContent='COORD. CHRISTIAN SÁNCHEZ';
+  document.getElementById('chartSub').textContent='Zona Total · Q3='+cq.q3.toFixed(2).replace('.',',')+' · Q4='+cq.q4.toFixed(2).replace('.',',')+'% · '+cq.n+' meses activos';
+  document.getElementById('chartBadges').innerHTML=`
+    <div class="cbdg cur"><span class="cbl">% Abr 26</span><span class="cbv">${COORD.vals[6].toFixed(2).replace('.',',')} %</span></div>
+    <div class="cbdg ind" style="border-color:rgba(124,61,138,.4);background:rgba(124,61,138,.07);"><span class="cbl">Cuartil 3</span><span class="cbv" style="color:${cc};">${cq.q3.toFixed(2).replace('.',',')} %</span></div>
+    <div class="cbdg corp"><span class="cbl">Meta Corp.</span><span class="cbv">24,01%</span></div>`;
+  document.getElementById('chartLegend').innerHTML=`
+    <div class="lgi"><div class="ll" style="background:${cc}"></div><span>% Libera Zona</span></div>
+    <div class="lgi"><div class="ld" style="border-color:${cc};"></div><span>Q3=${cq.q3.toFixed(2).replace('.',',')}%</span></div>
+    <div class="lgi"><div class="ld" style="border-color:#1a7a52;"></div><span>Q4=${cq.q4.toFixed(2).replace('.',',')}%</span></div>
+    <div class="lgi"><div class="ld" style="border-color:#b5860d;"></div><span>Meta Corp.</span></div>`;
+  const ptC=COORD.vals.map((v,i)=>!SEL[i]?'#c8bfae':v>=cq.q3?'#1a7a52':'#a33030');
+  const ptB=COORD.vals.map((_,i)=>SEL[i]?cc:'rgba(200,190,174,.5)');
+  const ptR=COORD.vals.map((_,i)=>SEL[i]?9:4);
+  if(mainCh){mainCh.destroy();mainCh=null;}
+  const ctx=document.getElementById('mainChart').getContext('2d');
+  const gr=ctx.createLinearGradient(0,0,0,230);gr.addColorStop(0,'rgba(124,61,138,.2)');gr.addColorStop(1,'rgba(124,61,138,.00)');
+  mainCh=new Chart(ctx,{type:'line',data:{labels:ML,datasets:[
+    {label:'% Libera',data:COORD.vals,borderColor:cc,borderWidth:3,backgroundColor:gr,fill:true,tension:.35,pointBackgroundColor:ptC,pointBorderColor:ptB,pointBorderWidth:2.5,pointRadius:ptR,pointHoverRadius:12,order:0},
+    {label:'Q3',data:ML.map(()=>cq.q3),borderColor:cc,borderWidth:2,borderDash:[7,4],pointRadius:0,fill:false,order:1},
+    {label:'Q4',data:ML.map(()=>cq.q4),borderColor:'#1a7a52',borderWidth:1.5,borderDash:[4,4],pointRadius:0,fill:false,order:2},
+    {label:'Meta Corp.',data:ML.map(()=>MC),borderColor:'#b5860d',borderWidth:1.5,borderDash:[5,5],pointRadius:0,fill:false,order:3}
+  ]},options:{responsive:true,maintainAspectRatio:true,aspectRatio:3.2,interaction:{mode:'index',intersect:false},
+    plugins:{legend:{display:false},tooltip:{backgroundColor:'#ede8dc',borderColor:'rgba(124,61,138,.3)',borderWidth:1,titleColor:'#2a2318',bodyColor:'#6b5e4a',padding:11,cornerRadius:8,callbacks:{label:c2=>` ${c2.dataset.label}: ${c2.parsed.y!=null?c2.parsed.y.toFixed(2).replace('.',',')+'%':'—'}`}}},
+    scales:{x:{ticks:{color:'#6b5e4a',font:{family:'DM Sans',size:10}},grid:{color:'rgba(180,160,130,.21)'}},
+      y:{ticks:{color:cc,font:{family:'IBM Plex Mono',size:9},callback:v2=>v2.toFixed(1)+'%'},grid:{color:'rgba(124,61,138,.09)'},min:0,suggestedMax:30}}}});
+  document.getElementById('dtblWrap').style.display='block';
+  document.getElementById('dtblTitle').textContent='Detalle Coordinador · Q3='+cq.q3.toFixed(2).replace('.',',')+' · Q4='+cq.q4.toFixed(2).replace('.',',')+' · '+cq.n+' meses activos';
+  document.getElementById('dtblBody').innerHTML=ML.map((lbl,i)=>{
+    const val=COORD.vals[i],d=val-cq.q3,act=SEL[i];
+    const ds=`<span class="${d>=0?'up':'dn'}">${d>=0?'▲':'▼'} ${Math.abs(d).toFixed(2).replace('.',',')}pp</span>`;
+    let sc,sd,st;if(d>=0){sc='win';sd='#1a7a52';st='Cumple';}else if(d>=-3){sc='near';sd='#b5860d';st='Cerca';}else{sc='miss';sd='#a33030';st='No Cumple';}
+    return `<tr style="${!act?'opacity:.38;':''}${i>=5?'background:rgba(124,61,138,.04);':''}">
+      <td>${lbl}${!act?' <span style="font-size:.56rem;color:var(--text-faint);">(excl.)</span>':''}${i>=5&&act?' ★':''}</td>
+      <td style="color:${cc};font-weight:600">${val.toFixed(2).replace('.',',')}%</td>
+      <td style="color:${cc};font-weight:700">${cq.q3.toFixed(2).replace('.',',')}%</td>
+      <td style="color:${cc}88;font-size:.62rem;">CUARTIL(·;3)</td>
+      <td style="color:#b5860d">${MC.toFixed(2).replace('.',',')}%</td>
+      <td style="text-align:right">${ds}</td>
+      <td style="text-align:center"><span class="schip ${sc}"><span class="cdot2" style="background:${sd}"></span>${st}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════
+// RENDER SECCIÓN COORDINADOR (bloque inferior)
+// ═══════════════════════════════════════════════════
+function renderCoordSection(){
+  const cq=coordQ(),cc=COORD.color,vals=COORD.vals;
+  // Badges cuartil selector
+  document.getElementById('cqBadges').innerHTML=`
+    <div class="cqb"><span class="cql">Cuartil 3</span><span class="cqv">${cq.q3.toFixed(2).replace('.',',')}%</span></div>
+    <div class="cqb"><span class="cql">Cuartil 4</span><span class="cqv">${cq.q4.toFixed(2).replace('.',',')}%</span></div>
+    <div class="cqb"><span class="cql">Promedio activo</span><span class="cqv">${cq.avg.toFixed(2).replace('.',',')}%</span></div>
+    <div class="cqb"><span class="cql">Meses activos</span><span class="cqv">${cq.n} / 7</span></div>`;
+  // Badges cabecera
+  const lat=vals[6],prv=vals[5],tr=lat-prv;
+  document.getElementById('coordBadges').innerHTML=`
+    <div class="coord-badge"><span class="cbl2">% Libera Abr 26</span><span class="cbv2">${lat.toFixed(2).replace('.',',')} %</span></div>
+    <div class="coord-badge ${tr>=0?'tup':'tdn'}"><span class="cbl2">vs Mes Ant.</span><span class="cbv2">${tr>=0?'▲':'▼'} ${Math.abs(tr).toFixed(2).replace('.',',')} pp</span></div>
+    <div class="coord-badge"><span class="cbl2">Mejor Mes (${MS[vals.indexOf(Math.max(...vals))]})</span><span class="cbv2">${Math.max(...vals).toFixed(2).replace('.',',')} %</span></div>`;
+  // Tabla
+  let tbody='';
+  vals.forEach((v,i)=>{
+    const si=COORD.saldoIni[i],sl=COORD.saldoLib[i],act=SEL[i];
+    const dp=i>0?v-vals[i-1]:null,dq=v-cq.q3,dm=v-MC;
+    const dps=dp!==null?`<span class="${dp>=0?'up':'dn'}">${dp>=0?'▲':'▼'} ${Math.abs(dp).toFixed(2).replace('.',',')} pp</span>`:'—';
+    const dqs=`<span class="${dq>=0?'up':'dn'}">${dq>=0?'▲':'▼'} ${Math.abs(dq).toFixed(2).replace('.',',')} pp</span>`;
+    const dms=`<span class="${dm>=0?'up':'dn'}">${dm>=0?'▲':'▼'} ${Math.abs(dm).toFixed(2).replace('.',',')} pp</span>`;
+    tbody+=`<tr class="${!act?'excl':''}">
+      <td>${ML[i]}${i>=5?` <span style="font-size:.56rem;color:${cc};font-weight:700;">★</span>`:''}${!act?' <span style="font-size:.54rem;color:var(--text-faint);">(excl.)</span>':''}</td>
+      <td>${fM(si)}</td>
+      <td style="color:${cc};font-weight:600;">${fM(sl)}</td>
+      <td class="${v>=cq.q3?'cpu':'cpd'}">${v.toFixed(2).replace('.',',')} %</td>
+      <td style="text-align:right;">${dps}</td>
+      <td style="text-align:right;">${dqs}</td>
+      <td style="text-align:right;">${dms}</td>
+    </tr>`;
+  });
+  const tSI=COORD.saldoIni.reduce((a,b)=>a+b,0),tSL=COORD.saldoLib.reduce((a,b)=>a+b,0);
+  tbody+=`<tr class="totrow">
+    <td style="color:${cc};">Totales / Prom. activo</td>
+    <td>${fM(tSI)}</td><td style="color:${cc};">${fM(tSL)}</td>
+    <td class="${cq.avg>=cq.q3?'cpu':'cpd'}">${cq.avg.toFixed(2).replace('.',',')} %</td>
+    <td>—</td>
+    <td class="${cq.avg>=cq.q3?'cpu':'cpd'}">${(cq.avg-cq.q3).toFixed(2).replace('.',',')} pp</td>
+    <td class="${cq.avg>=MC?'cpu':'cpd'}">${(cq.avg-MC).toFixed(2).replace('.',',')} pp</td>
+  </tr>`;
+  document.getElementById('coordTblBody').innerHTML=tbody;
+  // Leyenda
+  document.getElementById('coordLgnd').innerHTML=`
+    <div class="coord-lgi"><div style="width:15px;height:2.5px;border-radius:1px;background:${cc};"></div><span>% Libera</span></div>
+    <div class="coord-lgi"><div style="width:15px;height:0;border-top:2px dashed ${cc};"></div><span>Q3=${cq.q3.toFixed(2).replace('.',',')}%</span></div>
+    <div class="coord-lgi"><div style="width:15px;height:0;border-top:2px dashed #1a7a52;"></div><span>Q4=${cq.q4.toFixed(2).replace('.',',')}%</span></div>
+    <div class="coord-lgi"><div style="width:15px;height:0;border-top:2px dashed #b5860d;"></div><span>24,01%</span></div>`;
+  // Gráfico
+  const ptC=vals.map((v,i)=>!SEL[i]?'#c8bfae':v>=cq.q3?'#1a7a52':'#a33030');
+  const ptB=vals.map((_,i)=>SEL[i]?cc:'rgba(200,190,174,.5)');
+  const ptR=vals.map((_,i)=>SEL[i]?9:4);
+  if(coordCh){coordCh.destroy();coordCh=null;}
+  const ctx2=document.getElementById('coordChart').getContext('2d');
+  const gr2=ctx2.createLinearGradient(0,0,0,200);gr2.addColorStop(0,'rgba(124,61,138,.2)');gr2.addColorStop(1,'rgba(124,61,138,.00)');
+  coordCh=new Chart(ctx2,{type:'line',data:{labels:ML,datasets:[
+    {label:'% Libera',data:vals,borderColor:cc,borderWidth:3,backgroundColor:gr2,fill:true,tension:.35,pointBackgroundColor:ptC,pointBorderColor:ptB,pointBorderWidth:2.5,pointRadius:ptR,pointHoverRadius:12,order:0},
+    {label:'Q3='+cq.q3.toFixed(2).replace('.',',')+'%',data:ML.map(()=>cq.q3),borderColor:cc,borderWidth:2,borderDash:[7,4],pointRadius:0,fill:false,order:1},
+    {label:'Q4='+cq.q4.toFixed(2).replace('.',',')+'%',data:ML.map(()=>cq.q4),borderColor:'#1a7a52',borderWidth:1.5,borderDash:[4,4],pointRadius:0,fill:false,order:2},
+    {label:'Meta Corp. 24,01%',data:ML.map(()=>MC),borderColor:'#b5860d',borderWidth:1.5,borderDash:[5,5],pointRadius:0,fill:false,order:3}
+  ]},options:{responsive:true,maintainAspectRatio:true,aspectRatio:2.2,interaction:{mode:'index',intersect:false},
+    plugins:{legend:{display:false},tooltip:{backgroundColor:'#ede8dc',borderColor:'rgba(124,61,138,.3)',borderWidth:1,titleColor:'#2a2318',bodyColor:'#6b5e4a',padding:11,cornerRadius:8,callbacks:{label:c2=>` ${c2.dataset.label}: ${c2.parsed.y!=null?c2.parsed.y.toFixed(2).replace('.',',')+'%':'—'}`}}},
+    scales:{x:{ticks:{color:'#6b5e4a',font:{family:'DM Sans',size:10}},grid:{color:'rgba(180,160,130,.21)'}},
+      y:{ticks:{color:cc,font:{family:'IBM Plex Mono',size:9},callback:v2=>v2.toFixed(1)+'%'},grid:{color:'rgba(124,61,138,.09)'},min:0,suggestedMax:28}}}});
+}
+
+// ═══════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════
+updateHeader();
+renderMasterTable();
+applyFilters();
+renderCoordSection();
+selectCob(ALL[0]);
+</script>
+</body>
+</html>
